@@ -1,0 +1,26 @@
+{
+  "name": "make-my-trip-clone",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": "true",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "format": "prettier --write \"{client,server}/**/*.{js,ts,tsx,css,json}\"",
+    "check": "prettier --check \"{client,server}/**/*.{js,ts,tsx,css,json}\"",
+    "lint:all": "npm run lint --prefix client && npm run lint --prefix server",
+    "lint:fix": "npm run lint:fix --prefix client && npm run lint:fix --prefix server",
+    "dev": "concurrently \"npm run dev --prefix client \" \"npm run dev --prefix server\""
+  },
+  "keywords": [],
+  "author": "Renin.M",
+  "license": "ISC",
+  "description": "A full stack web application for booking flights and hotel",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  }
+}
