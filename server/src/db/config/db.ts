@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+import { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_CLUSTER } from "../../config/env.config.js";
 
-dotenv.config();
-
-const { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_CLUSTER } = process.env;
 const DB_URL = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=Cluster0`;
-
 //Function to connect to mongodb connection.
 export const connectDB = async () => {
   try {

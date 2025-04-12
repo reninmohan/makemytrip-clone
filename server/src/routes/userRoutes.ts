@@ -3,6 +3,7 @@ const router = Router();
 
 router.get("/user/:name", (req, res) => {
   const { name } = req.params;
+
   res.status(200).json({ name });
 });
 

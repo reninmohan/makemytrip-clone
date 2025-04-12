@@ -8,6 +8,7 @@ interface AppError extends Error {
 const errorHandler = (error: AppError, _req: Request, res: Response, next: NextFunction) => {
   console.log("Error from global catch middleware", error);
   const statusCode = error.statusCode || 500;
+
   res.status(statusCode).json({ status: "error", message: error?.message || "Internal server Error" });
 };
 
