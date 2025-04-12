@@ -1,6 +1,6 @@
 import "./App.css";
 function App() {
-  return <div>Hello</div>;
+  return <div>Make My Trip</div>;
 }
 
 export default App;
