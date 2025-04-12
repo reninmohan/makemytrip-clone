@@ -37,7 +37,7 @@ app.all("*", (req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// Error-handling middleware
+// Error-handling middleware aka global catch for route and middleware.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.log(error);
