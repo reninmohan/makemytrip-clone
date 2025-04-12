@@ -9,3 +9,4 @@ server/dist/
 package-lock.json
 
 *.logs
+.env
