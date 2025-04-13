@@ -1,30 +1,41 @@
 import express from "express";
 import errorHandler from "./middlewares/error.middleware.js";
 import unknownRouteHandler from "./middlewares/unknownRoute.middleware.js";
-import { connectDB } from "./db/config/db.js";
-import { PORT as ENVPORT } from "./config/env.config.js";
+import { connectDB } from "./db/config/db.connection.js";
+import ENV from "./config/env.config.js";
+import userRouter from "./routes/users.route.js";
 
 const app = express();
-
-const PORT = ENVPORT || 3000;
-
+const PORT = ENV.PORT || 3000;
 app.use(express.json());
 
 //Function to connect mongoose to MongoDB
-connectDB();
+await connectDB();
 
-// Routes
+//Mounting  userRouter as middleware for particular route /api/users
+app.use("/api/users", userRouter);
 
-app.get("/", (_req, res) => {
-  res.status(200).send("Hello this is the root '/' route.");
-});
-
-//Middleware to handle unknown route.
+//To handle unknown route in all routes.
 app.all("*", unknownRouteHandler);
 
 //Global catch middleware for route and middleware error handling.
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}/`);
+const server = app.listen(PORT, () => {
+  console.log(`Express server running at http://localhost:${PORT}`);
 });
+
+//If any unhandled error occured while startup, server will stop.
+process.on("unhandledRejection", (error: unknown) => {
+  console.error("Unhandled Rejection on startup occurred:", error);
+  if (server) {
+    server.close(() => {
+      console.log("Server closed due to unhandled rejection");
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+});
+
+export { server };

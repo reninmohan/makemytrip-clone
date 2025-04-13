@@ -10,3 +10,5 @@ package-lock.json
 
 *.logs
 .env
+
+instruction.txt
