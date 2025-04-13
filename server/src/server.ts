@@ -1,41 +1,45 @@
-import express from "express";
-import errorHandler from "./middlewares/error.middleware.js";
-import unknownRouteHandler from "./middlewares/unknownRoute.middleware.js";
-import { connectDB } from "./db/config/db.connection.js";
 import ENV from "./config/env.config.js";
-import userRouter from "./routes/users.route.js";
+import app from "./app.js";
+import { connectDB, disconnectDB } from "./db/config/db.connection.js";
+import { Server } from "http";
 
-const app = express();
 const PORT = ENV.PORT || 3000;
-app.use(express.json());
+let server: Server | null = null;
 
-//Function to connect mongoose to MongoDB
-await connectDB();
-
-//Mounting  userRouter as middleware for particular route /api/users
-app.use("/api/users", userRouter);
-
-//To handle unknown route in all routes.
-app.all("*", unknownRouteHandler);
-
-//Global catch middleware for route and middleware error handling.
-app.use(errorHandler);
-
-const server = app.listen(PORT, () => {
-  console.log(`Express server running at http://localhost:${PORT}`);
-});
-
-//If any unhandled error occured while startup, server will stop.
-process.on("unhandledRejection", (error: unknown) => {
-  console.error("Unhandled Rejection on startup occurred:", error);
-  if (server) {
-    server.close(() => {
-      console.log("Server closed due to unhandled rejection");
-      process.exit(1);
+const startServer = async () => {
+  try {
+    await connectDB();
+    server = app.listen(PORT, () => {
+      console.log(`Express started running at http://localhost:${PORT}`);
     });
-  } else {
+  } catch (error) {
+    console.error("Forcefully shutting down server.", error);
     process.exit(1);
   }
-});
+};
 
-export { server };
+startServer();
+
+const shutdown = async () => {
+  if (!server) return;
+
+  console.log("Shutting down server...");
+  server.close(async () => {
+    await disconnectDB();
+    console.log("Server and database connections closed successfully");
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.log("Forcefully shutting down server....");
+    process.exit(1);
+  }, 10000);
+};
+
+// Global signal handlers
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+process.on("unhandledRejection", (error) => {
+  if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
+  shutdown();
+});
