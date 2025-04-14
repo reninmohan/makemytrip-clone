@@ -1,17 +1,22 @@
 import express from "express";
-import unknownRouteHandler from "./middlewares/unknownRoute.middleware.js";
-import errorHandler from "./middlewares/error.middleware.js";
+import { unknownRoute } from "./middlewares/unknownRoute.middleware.js";
+import { globalErrorResponse } from "./middlewares/globalErrorResponse.middleware.js";
 import userRouter from "./routes/users.route.js";
 const app = express();
 
-//Mounting  userRouter as middleware for particular route /api/users
-app.use("/api/users", userRouter);
-
+//middleware to parse json in req body
 app.use(express.json());
 
-app.all("*", unknownRouteHandler);
+//middleware to parse form data in req body , extended option let parse nested objects.
+app.use(express.urlencoded({ extended: true }));
 
-//Global catch middleware for route and middleware error handling.
-app.use(errorHandler);
+//middleware to handle /api/users
+app.use("/api/users", userRouter);
+
+//middleware to handle all unknown registered routes
+app.all("*", unknownRoute);
+
+//Global error handling middleware for route handler and middleware.
+app.use(globalErrorResponse);
 
 export default app;

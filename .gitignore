@@ -11,4 +11,5 @@ package-lock.json
 *.logs
 .env
 
-instruction.txt
+learn-resource/
+instruction.md

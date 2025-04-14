@@ -3,7 +3,7 @@ import app from "./app.js";
 import { connectDB, disconnectDB } from "./db/config/db.connection.js";
 import { Server } from "http";
 
-const PORT = ENV.PORT || 3000;
+const PORT = Number(ENV.PORT) || 3000;
 let server: Server | null = null;
 
 const startServer = async () => {
@@ -13,13 +13,15 @@ const startServer = async () => {
       console.log(`Express started running at http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Forcefully shutting down server.", error);
+    console.error("Forcefully shutting down server...", error);
     process.exit(1);
   }
 };
 
+//Server starts from here.
 startServer();
 
+//run shutdown fn incase of app crash by terminal or promise rejection case.
 const shutdown = async () => {
   if (!server) return;
 
