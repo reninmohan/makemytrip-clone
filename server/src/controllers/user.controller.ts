@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import * as userServices from "../services/user.services.js";
+import { createUser as createUserFn } from "../services/index.js";
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await userServices.createUser(req.body);
+    const user = await createUserFn(req.body);
     console.log("User created successfully", { userId: user.id });
     res.status(201).json(user);
   } catch (error) {

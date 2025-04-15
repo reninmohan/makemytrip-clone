@@ -22,10 +22,11 @@ const startServer = async () => {
 startServer();
 
 //run shutdown fn incase of app crash by terminal or promise rejection case.
-const shutdown = async () => {
+const shutdown = async (): Promise<void> => {
   if (!server) return;
 
   console.log("Shutting down server...");
+  //Stop accepting new connection request and waits for ongoing requests to complete then run
   server.close(async () => {
     await disconnectDB();
     console.log("Server and database connections closed successfully");
@@ -43,5 +44,9 @@ process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 process.on("unhandledRejection", (error) => {
   if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
+  shutdown();
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err.message);
   shutdown();
 });

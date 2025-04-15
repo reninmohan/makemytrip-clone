@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 import ENV from "../config/env.config.js";
 import { NextFunction, Request, Response } from "express";
-import { HttpError } from "../utils/error.utils.js";
-import { getUserById } from "../services/user.services.js";
+import { HttpError } from "../utils/index.js";
+import { getUserById } from "../services/index.js";
 
-export const authUser = async (req: Request, _res: Response, next: NextFunction) => {
+export const authUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeaders = req.headers.authorization;
     if (!authHeaders || !authHeaders.startsWith("Bearer ")) {
@@ -23,6 +23,7 @@ export const authUser = async (req: Request, _res: Response, next: NextFunction)
     let decoded;
     try {
       decoded = jwt.verify(token, ENV.JWT_SECRET) as { id: string };
+      console.log(decoded);
     } catch (error) {
       return next(new HttpError(401, "Invalid or expired token", error));
     }
@@ -34,6 +35,7 @@ export const authUser = async (req: Request, _res: Response, next: NextFunction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (req as any).user = user;
     return next();
+    // res.send("All OKK");
   } catch (error) {
     return next(error);
   }

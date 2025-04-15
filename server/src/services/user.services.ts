@@ -1,8 +1,8 @@
-import { UserDocument, UserModal } from "../db/models/UserModel.js";
-import { UserCreate } from "../db/schemas/user.schema.js";
+import { UserDocument, UserModal } from "../db/models/index.js";
+import { UserCreate } from "../schemas/index.js";
 import { UserResponse } from "../types/user.types.js";
-import { HttpError } from "../utils/error.utils.js";
-import { hashPassword } from "./password.utils.js";
+import { HttpError } from "../utils/index.js";
+import { hashPassword } from "../utils/index.js";
 
 //Converting db document back to object and santize it to remove sensitive data.
 const toUserResponse = (user: UserDocument): UserResponse => {
@@ -23,7 +23,6 @@ export const createUser = async (userData: UserCreate): Promise<UserResponse> =>
   if (existingUser) {
     throw new HttpError(409, "User with this email id already exists");
   }
-
   //hash password before storing in db.
   const hashedPassword = await hashPassword(userData.password);
 

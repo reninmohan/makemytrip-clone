@@ -1,12 +1,11 @@
-//Use mongoose because we cant directly talk to mongodb but since db calls are async to do it an async function, prepare to function
+//Using node we cant directly talk to mongodb, we use mongooose as connector but since db calls are async to do it an async function, prepare to function
 //  1. for connection  2. for disconnection
-
 import mongoose from "mongoose";
 import ENV from "../../config/env.config.js";
 
 export const connectDB = async (): Promise<void> => {
   try {
-    if (!ENV.MONGODB_URL) throw new Error("MONGO_URL is unavailable.");
+    if (!ENV.MONGODB_URL) throw new Error("MONGO_URL is missing in env.");
     await mongoose.connect(ENV.MONGODB_URL, { dbName: "makemytrip" });
     console.clear();
     console.log("Connected to MongoDB successfully.");
