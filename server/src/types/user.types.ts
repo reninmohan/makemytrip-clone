@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password: string;
   role: "user" | "admin";
+  phoneNumber: string;
 }
 
 // Are not sending user password back to user. That dumb thing to do.
@@ -11,6 +12,7 @@ export interface UserResponse {
   id: string;
   fullName: string;
   email: string;
+  phoneNumber: string;
   role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;

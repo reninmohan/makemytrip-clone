@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { HttpError } from "../utils/index.js";
 import { getUserById } from "../services/index.js";
 
-export const authUser = async (req: Request, res: Response, next: NextFunction) => {
+export const authUser = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     const authHeaders = req.headers.authorization;
     if (!authHeaders || !authHeaders.startsWith("Bearer ")) {

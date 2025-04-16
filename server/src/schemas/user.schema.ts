@@ -3,12 +3,22 @@
 import { z } from "zod";
 
 //here userCreateSchema is zod schema object, these rules will be used runtime validation.
-export const userCreateSchema = z.object({
-  fullName: z.string().min(5, "nName must be at least 5 characters."),
+export const userRegistrationSchema = z.object({
+  fullName: z.string().min(3, "FullName must be at least 3 characters."),
   email: z.string().email("Invalid email format"),
   password: z.string().min(8, "Password must be atleast 8 characters"),
   role: z.enum(["user", "admin"]).default("user").optional(),
+  phoneNumber: z
+    .string()
+    .min(10, "Phone number must atleast be 10 digits")
+    .max(15, "Phone number must be most 15 digits"),
+});
+
+export const userLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
 });
 
 //This line convert zod schema to typescript type
-export type UserCreate = z.infer<typeof userCreateSchema>;
+export type UserRegistration = z.infer<typeof userRegistrationSchema>;
+export type UserLogin = z.infer<typeof userLoginSchema>;

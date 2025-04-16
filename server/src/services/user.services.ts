@@ -1,5 +1,5 @@
-import { UserDocument, UserModal } from "../db/models/index.js";
-import { UserCreate } from "../schemas/index.js";
+import { UserDocument, UserModal } from "../db/models/UserModel.js";
+import { UserRegistration } from "../schemas/index.js";
 import { UserResponse } from "../types/user.types.js";
 import { HttpError } from "../utils/index.js";
 import { hashPassword } from "../utils/index.js";
@@ -11,13 +11,14 @@ const toUserResponse = (user: UserDocument): UserResponse => {
     fullName: user.fullName,
     email: user.email,
     createdAt: user.createdAt,
-    updatedAt: user.updateAt,
+    updatedAt: user.updatedAt,
+    phoneNumber: user.phoneNumber,
     role: user.role,
   };
 };
 
 //Getting data as per input for that reason use zod schema type
-export const createUser = async (userData: UserCreate): Promise<UserResponse> => {
+export const createUser = async (userData: UserRegistration): Promise<UserResponse> => {
   const existingUser = await UserModal.findOne({ email: userData.email });
 
   if (existingUser) {
