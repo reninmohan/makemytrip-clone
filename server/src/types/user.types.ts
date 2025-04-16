@@ -1,5 +1,5 @@
 //These types will be used to static checking for database schema
-export interface User {
+export interface IUser {
   fullName: string;
   email: string;
   password: string;
@@ -8,7 +8,7 @@ export interface User {
 }
 
 // Are not sending user password back to user. That dumb thing to do.
-export interface UserResponse {
+export interface IUserResponse {
   id: string;
   fullName: string;
   email: string;

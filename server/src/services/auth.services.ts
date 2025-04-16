@@ -7,11 +7,11 @@ import { comparePassword } from "../utils/index.js";
 import { UserResponse } from "../types/user.types.js";
 import { Request } from "express";
 
-interface CreateTokenI extends UserResponse {
+interface ICreateToken extends UserResponse {
   token: string;
 }
 
-const createTokenResponse = (user: UserDocument, token: string): CreateTokenI => {
+const createTokenResponse = (user: UserDocument, token: string): ICreateToken => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -53,7 +53,7 @@ export const createToken = async (loginData: UserLogin) => {
 
 //For verify already existing token in headers
 
-export interface VerifyTokenI {
+export interface IVerifyToken {
   id: string;
   fullName: string;
   phoneNumber: string;
@@ -61,7 +61,7 @@ export interface VerifyTokenI {
   role: string;
 }
 
-const verifyTokenResponse = (user: UserDocument): VerifyTokenI => {
+const verifyTokenResponse = (user: UserDocument): IVerifyToken => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -71,7 +71,7 @@ const verifyTokenResponse = (user: UserDocument): VerifyTokenI => {
   };
 };
 
-export const verifyToken = async (request: Request): Promise<VerifyTokenI> => {
+export const verifyToken = async (request: Request): Promise<IVerifyToken> => {
   const authHeaders = request.headers.authorization;
 
   if (!authHeaders || !authHeaders.startsWith("Bearer ")) {

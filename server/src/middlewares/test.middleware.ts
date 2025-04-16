@@ -2,15 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Request, NextFunction, Response } from "express";
 import { HttpError } from "../utils/error.utils.js";
-import { VerifyTokenI } from "../services/auth.services.js";
 
-export const testmidandcontroller = async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+export const testmidandcontroller = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   try {
-    console.log(req.user);
-    res.json({ message: "Reached at end" });
+    console.log("from testmiddleware :", req.user);
+    res.json({ message: "Reached at testmiddleware" });
   } catch (error) {
-    return next(new HttpError(1, "UnknowError"));
+    return next(new HttpError(1, "UnknowError "));
   }
 };
-
-// & { user?: any },

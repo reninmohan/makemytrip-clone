@@ -1,11 +1,11 @@
 import { UserDocument, UserModal } from "../db/models/UserModel.js";
 import { UserRegistration } from "../schemas/index.js";
-import { UserResponse } from "../types/user.types.js";
+import { IUserResponse } from "../types/user.types.js";
 import { HttpError } from "../utils/index.js";
 import { hashPassword } from "../utils/index.js";
 
 //Converting db document back to object and santize it to remove sensitive data.
-const toUserResponse = (user: UserDocument): UserResponse => {
+const toUserResponse = (user: UserDocument): IUserResponse => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -18,7 +18,7 @@ const toUserResponse = (user: UserDocument): UserResponse => {
 };
 
 //Getting data as per input for that reason use zod schema type
-export const createUser = async (userData: UserRegistration): Promise<UserResponse> => {
+export const createUser = async (userData: UserRegistration): Promise<IUserResponse> => {
   const existingUser = await UserModal.findOne({ email: userData.email });
 
   if (existingUser) {

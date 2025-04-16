@@ -8,7 +8,6 @@ export const authUser = async (req: Request, res: Response, next: NextFunction) 
     console.log("User logged in and token created");
 
     const token = user.token;
-    console.log("token", token);
 
     res.cookie("token", token, {
       httpOnly: true,

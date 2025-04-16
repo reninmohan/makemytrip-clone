@@ -12,6 +12,6 @@ authRouter.post("/register", validateInput(userRegistrationSchema), createUser);
 
 authRouter.post("/login", validateInput(userLoginSchema), authUser);
 
-authRouter.post("/abletologin", authorization, testmidandcontroller);
+authRouter.post("/:me", authorization, testmidandcontroller);
 
 export default authRouter;

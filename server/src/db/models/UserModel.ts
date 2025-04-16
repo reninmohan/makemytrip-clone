@@ -1,8 +1,8 @@
 import mongoose, { Document } from "mongoose";
-import { User } from "../../types/user.types.js";
+import { IUser } from "../../types/user.types.js";
 
 // Document is a mongoose special type
-export interface UserDocument extends User, Document {
+export interface UserDocument extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
 }

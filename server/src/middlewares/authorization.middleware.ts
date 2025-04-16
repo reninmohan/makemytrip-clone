@@ -1,9 +1,9 @@
 //Use this middleware if you already have jwt token in ur header only
 import { NextFunction, Request, Response } from "express";
-import { verifyToken, VerifyTokenI } from "../services/auth.services.js";
+import { verifyToken, IVerifyToken } from "../services/auth.services.js";
 import { HttpError } from "../utils/error.utils.js";
 
-type RequestWithUser = Request & { user?: VerifyTokenI };
+type RequestWithUser = Request & { user?: IVerifyToken };
 
 export const authorization = async (req: Request, _res: Response, next: NextFunction) => {
   try {
