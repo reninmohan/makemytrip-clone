@@ -15,8 +15,8 @@ export const userRegistrationSchema = z.object({
 });
 
 export const userLoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 //This line convert zod schema to typescript type
