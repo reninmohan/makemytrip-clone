@@ -1,8 +1,8 @@
-import { UserDocument, UserModal } from "../db/models/UserModel.js";
-import { UserRegistration } from "../schemas/index.js";
+import { UserDocument, UserModal } from "../db/models/user.model.js";
+import { UserRegistration } from "../schemas/user.schema.js";
 import { IUserResponse } from "../types/user.types.js";
-import { HttpError } from "../utils/index.js";
-import { hashPassword } from "../utils/index.js";
+import { HttpError } from "../utils/error.utils.js";
+import { hashPassword } from "../utils/password.utils.js";
 
 //Converting db document back to object and santize it to remove sensitive data.
 const toUserResponse = (user: UserDocument): IUserResponse => {

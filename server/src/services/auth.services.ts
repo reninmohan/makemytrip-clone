@@ -1,13 +1,13 @@
 import jwt from "jsonwebtoken";
 import ENV from "../config/env.config.js";
-import { UserDocument, UserModal } from "../db/models/UserModel.js";
+import { UserDocument, UserModal } from "../db/models/user.model.js";
 import { UserLogin } from "../schemas/user.schema.js";
 import { HttpError } from "../utils/error.utils.js";
-import { comparePassword } from "../utils/index.js";
-import { UserResponse } from "../types/user.types.js";
+import { comparePassword } from "../utils/password.utils.js";
+import { IUserResponse } from "../types/user.types.js";
 import { Request } from "express";
 
-interface ICreateToken extends UserResponse {
+interface ICreateToken extends IUserResponse {
   token: string;
 }
 

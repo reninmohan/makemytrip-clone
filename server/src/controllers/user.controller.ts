@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { createUser as createUserFn } from "../services/index.js";
+import { createUser as createUserFn } from "../services/user.services.js";
 import { HttpError } from "../utils/error.utils.js";
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {

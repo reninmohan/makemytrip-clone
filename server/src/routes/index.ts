@@ -7,6 +7,4 @@ const indexRouter = Router();
 indexRouter.use("/auth", authRouter);
 // indexRouter.use("/users", userRouter);
 
-// indexRouter.use("/auth");
-
 export default indexRouter;

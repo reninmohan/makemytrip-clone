@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import indexRouter from "./routes/index.js";
-import { globalErrorResponse, unknownRoute } from "./middlewares/index.js";
+import { unknownRoute } from "./middlewares/unknownRoute.middleware.js";
+import { globalErrorResponse } from "./middlewares/globalErrorResponse.middleware.js";
 
 const app = express();
 //middleware to parse json in req body
@@ -12,6 +13,9 @@ app.use(cors());
 app.use(helmet());
 //middleware to parse form data in req body , extended option let parse nested objects.
 app.use(express.urlencoded({ extended: true }));
+
+//uncomment at deployment
+// app.use(express.static("dist"));
 
 //middleware to handle all registered routes
 app.use("/api", indexRouter);

@@ -42,11 +42,11 @@ const shutdown = async (): Promise<void> => {
 // Global signal handlers
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
-process.on("unhandledRejection", (error) => {
-  if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
-  shutdown();
-});
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err.message);
-  shutdown();
-});
+// process.on("unhandledRejection", (error) => {
+//   if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
+//   shutdown();
+// });
+// process.on("uncaughtException", (err) => {
+//   console.error("Uncaught Exception:", err.message);
+//   shutdown();
+// });
