@@ -1,11 +1,11 @@
-import { UserDocument, UserModal } from "../db/models/user.model.js";
+import { IUserDocument, User } from "../db/models/user.model.js";
 import { UserRegistration } from "../schemas/user.schema.js";
 import { IUserResponse } from "../types/user.types.js";
 import { HttpError } from "../utils/error.utils.js";
 import { hashPassword } from "../utils/password.utils.js";
 
 //Converting db document back to object and santize it to remove sensitive data.
-const toUserResponse = (user: UserDocument): IUserResponse => {
+const toUserResponse = (user: IUserDocument): IUserResponse => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -19,7 +19,7 @@ const toUserResponse = (user: UserDocument): IUserResponse => {
 
 //Getting data as per input for that reason use zod schema type
 export const createUser = async (userData: UserRegistration): Promise<IUserResponse> => {
-  const existingUser = await UserModal.findOne({ email: userData.email });
+  const existingUser = await User.findOne({ email: userData.email });
 
   if (existingUser) {
     throw new HttpError(409, "User with this email id already exists");
@@ -28,7 +28,7 @@ export const createUser = async (userData: UserRegistration): Promise<IUserRespo
   const hashedPassword = await hashPassword(userData.password);
 
   //create new document instance.
-  const user = new UserModal({
+  const user = new User({
     ...userData,
     password: hashedPassword,
   });
@@ -38,7 +38,7 @@ export const createUser = async (userData: UserRegistration): Promise<IUserRespo
 };
 
 export const getUserById = async (id: string) => {
-  const user = await UserModal.findById(id);
+  const user = await User.findById(id);
   if (!user) return null;
   return toUserResponse(user);
 };

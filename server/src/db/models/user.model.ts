@@ -2,12 +2,12 @@ import mongoose, { Document } from "mongoose";
 import { IUser } from "../../types/user.types.js";
 
 // Document is a mongoose special type
-export interface UserDocument extends IUser, Document {
+export interface IUserDocument extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new mongoose.Schema<UserDocument>(
+const userSchema = new mongoose.Schema<IUserDocument>(
   {
     fullName: { type: String, required: true, trim: true },
     password: { type: String, required: true },
@@ -20,6 +20,6 @@ const userSchema = new mongoose.Schema<UserDocument>(
   },
 );
 
-export const UserModal = mongoose.model<UserDocument>("User", userSchema);
+export const User = mongoose.model<IUserDocument>("User", userSchema);
 // can book flights and hotels
 // also used to store admin and user details

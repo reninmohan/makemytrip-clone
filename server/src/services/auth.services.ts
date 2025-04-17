@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import ENV from "../config/env.config.js";
-import { UserDocument, UserModal } from "../db/models/user.model.js";
+import { IUserDocument, User } from "../db/models/user.model.js";
 import { UserLogin } from "../schemas/user.schema.js";
 import { HttpError } from "../utils/error.utils.js";
 import { comparePassword } from "../utils/password.utils.js";
@@ -11,7 +11,7 @@ interface ICreateToken extends IUserResponse {
   token: string;
 }
 
-const createTokenResponse = (user: UserDocument, token: string): ICreateToken => {
+const createTokenResponse = (user: IUserDocument, token: string): ICreateToken => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -26,7 +26,7 @@ const createTokenResponse = (user: UserDocument, token: string): ICreateToken =>
 
 //For create a token
 export const createToken = async (loginData: UserLogin) => {
-  const user = await UserModal.findOne({
+  const user = await User.findOne({
     email: loginData.email,
   });
 
@@ -61,7 +61,7 @@ export interface IVerifyToken {
   role: string;
 }
 
-const verifyTokenResponse = (user: UserDocument): IVerifyToken => {
+const verifyTokenResponse = (user: IUserDocument): IVerifyToken => {
   return {
     id: user.id.toString(),
     fullName: user.fullName,
@@ -94,7 +94,7 @@ export const verifyToken = async (request: Request): Promise<IVerifyToken> => {
     throw new HttpError(401, "Invalid or expired token", error);
   }
 
-  const user = await UserModal.findById(decoded.id);
+  const user = await User.findById(decoded.id);
   if (!user) {
     throw new HttpError(401, "User not found");
   }
