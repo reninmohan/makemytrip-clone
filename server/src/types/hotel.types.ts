@@ -1,32 +1,15 @@
 import { IUser } from "./user.types.js";
 
-export interface ICoordinates {
-  latitude: number; // -90 to 90
-  longitude: number; // -180 to 180
-}
-
+//USED
 export interface ILocation {
   city: string;
   state: string;
   country: string;
   address?: string;
-  coordinates?: ICoordinates;
-}
-
-export interface IRoomType {
-  name: string;
-  hotel: string; // Only ObjectId string, matching the schema
-  description?: string;
-  capacity: number;
-  pricePerNight: number;
-  amenities: string[];
-  images: string[];
-  available: boolean;
-}
-
-// Add a new interface for populated room type
-export interface IPopulatedRoomType extends Omit<IRoomType, "hotel"> {
-  hotel: IHotel; // Populated hotel object
+  coordinates?: {
+    latitude: number; // -90 to 90
+    longitude: number; // -180 to 180;
+  };
 }
 
 export interface IHotel {
@@ -36,8 +19,26 @@ export interface IHotel {
   images: string[];
   rating?: number;
   amenities: string[];
+  roomTypes?: string[];
+}
+
+export interface IRoomType {
+  name: string;
+  hotel: string; // Only ObjectId string, matching the hotel schema
+  description: string;
+  capacity: number;
   pricePerNight: number;
-  roomTypes?: (string | IRoomType)[]; // Matches schema's z.union([objectIdSchema, roomTypeSchema])
+  amenities: string[];
+  images: string[];
+  bedType: string;
+  countInStock: number;
+}
+
+//NOT USED
+
+// Add a new interface for populated room type
+export interface IPopulatedRoomType extends Omit<IRoomType, "hotel"> {
+  hotel: IHotel; // Populated hotel object
 }
 
 // Add a new interface for populated hotel
@@ -75,7 +76,7 @@ export interface IHotelBooking {
 // New interface for populated booking
 export interface IPopulatedHotelBooking extends Omit<IHotelBooking, "user" | "hotel" | "roomType"> {
   user: IUser;
-  hotel: IHotel;
+  hotel: IPopulatedHotel;
   roomType: IRoomType;
 }
 
@@ -98,5 +99,4 @@ export interface ICreateHotel extends Omit<IHotel, "rating" | "roomTypes"> {
   location: ILocation;
   images: string[];
   amenities: string[];
-  pricePerNight: number;
 }

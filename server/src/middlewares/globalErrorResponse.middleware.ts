@@ -1,28 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Request, Response, NextFunction } from "express";
+import { ApiResponse } from "../utils/ApiResponse.utils.js";
 
-interface AppError extends Error {
+interface IAppError extends Error {
   statusCode?: number;
   errorObj?: any;
 }
-export const globalErrorResponse = (error: AppError, _req: Request, res: Response, _next: NextFunction) => {
+export const globalErrorResponse = (error: IAppError, _req: Request, res: Response, _next: NextFunction) => {
   const statusCode = error.statusCode || 500;
 
-  const errorResponse = {
-    status: "error",
-    statusCode,
-    message: error?.message || "Maybe Internal server Error",
-  };
+  const mainMessage = error.message || "Internal server Error";
 
-  console.error("Error from global catch:");
-  console.log(errorResponse);
+  let data = undefined;
 
   if (error?.errorObj?.issues) {
-    console.log("");
-    console.log("Validation Error");
-    console.log(error?.errorObj?.issues);
+    console.log("\nValidation Error", error?.errorObj?.issues);
+    data = error?.errorObj?.issues;
+  } else if (error?.errorObj?.errorResponse) {
+    data = error?.errorObj?.errorResponse;
+  } else {
+    data = error;
   }
 
-  res.status(statusCode).json(errorResponse);
+  res.status(statusCode).json(new ApiResponse(false, mainMessage, data));
 };
+
+//Perfect

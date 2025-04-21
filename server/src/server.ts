@@ -23,30 +23,34 @@ startServer();
 
 //run shutdown fn incase of app crash by terminal or promise rejection case.
 const shutdown = async (): Promise<void> => {
-  if (!server) return;
+  if (server) {
+    console.log("Shutting down server...");
+    //Stop accepting new connection request and waits for ongoing requests to complete then run
+    server.close(async () => {
+      await disconnectDB();
+      console.log("Server and database connections closed successfully");
+      process.exit(0);
+    });
 
-  console.log("Shutting down server...");
-  //Stop accepting new connection request and waits for ongoing requests to complete then run
-  server.close(async () => {
+    setTimeout(() => {
+      console.log("Forcefully shutting down server....");
+      process.exit(1);
+    }, 10000);
+  } else {
     await disconnectDB();
-    console.log("Server and database connections closed successfully");
+    console.log("Server was not running, but database connection was closed successfully.");
     process.exit(0);
-  });
-
-  setTimeout(() => {
-    console.log("Forcefully shutting down server....");
-    process.exit(1);
-  }, 10000);
+  }
 };
 
-// Global signal handlers
+// event handler
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
-// process.on("unhandledRejection", (error) => {
-//   if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
-//   shutdown();
-// });
-// process.on("uncaughtException", (err) => {
-//   console.error("Uncaught Exception:", err.message);
-//   shutdown();
-// });
+process.on("unhandledRejection", (error) => {
+  if (error instanceof Error) console.error("Unhandled Rejection Occured", error.message);
+  shutdown();
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err.stack || err.message);
+  shutdown();
+});

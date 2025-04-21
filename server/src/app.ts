@@ -1,21 +1,34 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import indexRouter from "./routes/index.js";
 import { unknownRoute } from "./middlewares/unknownRoute.middleware.js";
 import { globalErrorResponse } from "./middlewares/globalErrorResponse.middleware.js";
+import ENV from "./config/env.config.js";
 
 const app = express();
-//middleware to parse json in req body
-app.use(express.json());
-app.use(cors());
+
 //to protect app from common web vulnerabilities by setting various HTTP headers.
 app.use(helmet());
-//middleware to parse form data in req body , extended option let parse nested objects.
+
+app.use(
+  cors({
+    origin: ENV.CORS_ORIGIN,
+    credentials: true,
+  }),
+);
+
+//middleware to parse json in req body
+app.use(express.json({ limit: "16kb" }));
+
+//middleware to properly parse form data  in req body  & url data, extended option let parse nested objects.
 app.use(express.urlencoded({ extended: true }));
 
-//uncomment at deployment
-// app.use(express.static("dist"));
+//uncomment at deployment to serve static from public folder
+// app.use(express.static("public"));
+
+app.use(cookieParser());
 
 //middleware to handle all registered routes
 app.use("/api", indexRouter);

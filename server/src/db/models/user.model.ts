@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     password: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: { type: String, required: true, enum: ["user", "admin"], default: "user" },
   },
   {
     timestamps: true,
@@ -21,5 +21,8 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 );
 
 export const User = mongoose.model<IUserDocument>("User", userSchema);
+
+//Public Routes
+
 // can book flights and hotels
 // also used to store admin and user details

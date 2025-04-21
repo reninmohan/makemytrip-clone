@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import ENV from "../config/env.config.js";
 
 export const hashPassword = async (password: string): Promise<string> => {
@@ -8,5 +8,5 @@ export const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const comparePassword = async (plainPassword: string, hashedPassword: string): Promise<boolean> => {
-  return bcrypt.compare(plainPassword, hashedPassword);
+  return await bcrypt.compare(plainPassword, hashedPassword);
 };

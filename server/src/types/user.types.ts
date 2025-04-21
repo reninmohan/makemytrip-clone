@@ -14,6 +14,6 @@ export interface IUserResponse {
   email: string;
   phoneNumber: string;
   role: "user" | "admin";
-  createdAt: Date;
-  updatedAt: Date;
+  // createdAt: Date;
+  // updatedAt: Date;
 }
