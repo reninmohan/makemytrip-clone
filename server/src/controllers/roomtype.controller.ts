@@ -28,6 +28,7 @@ export const updateRoomType = async (req: RequestWithUserAndBody<Partial<IRoomTy
     if (error instanceof HttpError) {
       return next(error);
     }
+    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Unable to update roomtype."));
   }
 };

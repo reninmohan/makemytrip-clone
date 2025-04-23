@@ -109,15 +109,64 @@ export const fetchSpecficHotelService = async (req: RequestWithUser): Promise<IH
   return toHotelResponse(hotel);
 };
 
-export const fetchAllHotelsService = async (): Promise<IHotelResponse[]> => {
-  const hotels = await Hotel.find({}).populate("roomTypes");
-  // const hotels = await Hotel.find({});
+//Fetch all hotel with filteration.
+export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number; totalPages: number; currentPage: number }> => {
+  const { city, state, country, amenities, minPrice, maxPrice, guests, rating, page = "1", limit = "10" } = req.query;
 
-  if (!hotels.length) {
-    throw new HttpError(404, "No hotels found.");
+  console.log(req.query);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: any = {};
+
+  if (city) query["location.city"] = new RegExp(`^${city}$`, "i");
+  if (state) query["location.state"] = new RegExp(`^${state}$`, "i");
+  if (country) query["location.country"] = country;
+
+  if (rating) query.rating = { $gte: Number(rating) };
+
+  if (amenities) {
+    const amenitiesArray = Array.isArray(amenities) ? amenities : (amenities as string).split(",");
+    query.amenities = { $all: amenitiesArray };
+    // query.amenities = { $in: amenitiesArray };
   }
 
-  return hotels.map((hotel) => toHotelResponse(hotel));
+  // Initial find with population
+  const allHotels = await Hotel.find(query).populate("roomTypes");
+
+  let filteredHotels = allHotels;
+  if (minPrice || maxPrice || guests) {
+    // Filter by price and guest capacity inside roomTypes
+    filteredHotels = allHotels.filter((hotel) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hotel.roomTypes.some((room: any) => {
+        const matchesPrice = (!minPrice || room.pricePerNight >= Number(minPrice)) && (!maxPrice || room.pricePerNight <= Number(maxPrice));
+        const matchesGuests = !guests || room.capacity >= Number(guests);
+
+        return matchesPrice && matchesGuests;
+      }),
+    );
+  }
+
+  // Pagination
+  const skip = (Number(page) - 1) * Number(limit);
+  const paginatedHotels = filteredHotels.slice(skip, skip + Number(limit));
+  const totalHotels = filteredHotels.length;
+  const totalPages = Math.ceil(totalHotels / Number(limit));
+
+  if (!filteredHotels.length) {
+    return {
+      hotels: [],
+      totalHotels: 0,
+      totalPages: 0,
+      currentPage: Number(page),
+    };
+  }
+
+  return {
+    hotels: paginatedHotels.map(toHotelResponse),
+    totalHotels,
+    totalPages,
+    currentPage: Number(page),
+  };
 };
 
 export const fetchAllRoomsByHotelService = async (req: Request): Promise<IRoomTypeResponse[]> => {
@@ -126,13 +175,10 @@ export const fetchAllRoomsByHotelService = async (req: Request): Promise<IRoomTy
   if (!hotelId) {
     throw new HttpError(401, "HotelId params is not provided for roomtype search.");
   }
-
   const roomTypes = await RoomType.find({ hotel: hotelId });
-
   if (!roomTypes.length) {
     throw new HttpError(401, "No roomtypes exists for mentioned hotel.");
   }
-
   return roomTypes.map((roomtype) => toRoomTypeResponse(roomtype));
 };
 
@@ -145,19 +191,15 @@ export const checkHotelAvailabilityService = async (req: RequestWithUser): Promi
   if (!hotelId) {
     throw new HttpError(400, "hotelId param is required to check for hotel availability.");
   }
-
   const { checkInDate, checkOutDate } = req.body;
   if (!checkInDate || !checkOutDate) {
     throw new HttpError(400, "Check-in and Check-out dates are required.");
   }
-
   const roomTypes = await RoomType.find({ hotel: hotelId });
   if (!roomTypes.length) {
     throw new HttpError(404, "No roomtypes exist for this hotel.");
   }
-
   const availableRooms = [];
-
   for (const roomType of roomTypes) {
     const existingBookings = await HotelBooking.find({
       roomType: roomType._id,
@@ -166,7 +208,6 @@ export const checkHotelAvailabilityService = async (req: RequestWithUser): Promi
     });
     const bookedCount = existingBookings.length;
     const availableCount = roomType.countInStock - bookedCount;
-
     if (availableCount > 0) {
       availableRooms.push({
         ...toRoomTypeResponse(roomType),
@@ -176,29 +217,4 @@ export const checkHotelAvailabilityService = async (req: RequestWithUser): Promi
   }
 
   return availableRooms;
-
-  /*
-  const availableRooms = await Promise.all(
-    roomTypes.map(async (roomType) => {
-      const existingBookings = await HotelBooking.find({
-        roomType: roomType._id,
-        checkInDate: { $lt: new Date(checkOutDate) },
-        checkOutDate: { $gt: new Date(checkInDate) },
-      });
-      const bookedCount = existingBookings.length;
-      const availableCount = roomType.countInStock - bookedCount;
-  
-      if (availableCount > 0) {
-        return {
-          ...toRoomTypeResponse(roomType),
-          availableCount,
-        };
-      }
-      return null;
-    })
-  );
-  
-  return availableRooms.filter(Boolean);
-  
-*/
 };

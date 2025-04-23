@@ -46,7 +46,9 @@ const RoomTypeSchema = new mongoose.Schema<IRoomTypeDocument>({
 
 const RoomType = mongoose.model<IRoomTypeDocument>("RoomType", RoomTypeSchema);
 
-export interface IHotelDocument extends Document, IHotel {}
+export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
+  roomTypes: IRoomTypeDocument[];
+}
 
 // export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
 //   roomTypes: mongoose.Schema.Types.ObjectId;
