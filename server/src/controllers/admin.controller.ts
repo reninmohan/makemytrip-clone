@@ -1,18 +1,16 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
-import { RequestWithUser } from "../middlewares/auth.middleware.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
 import { loginByAdminService } from "../services/admin.services.js";
 import { setRefreshToken } from "../utils/setRefreshToken.utils.js";
 
-export const loginByAdmin = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+export const loginByAdmin = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { refreshToken, accessToken, user } = await loginByAdminService(req);
+    const { refreshToken, ...response } = await loginByAdminService(req.body);
     setRefreshToken(res, refreshToken);
     return res.status(200).json(
       new ApiResponse(true, "Successfully login by admin", {
-        accessToken,
-        user,
+        response,
       }),
     );
   } catch (error) {

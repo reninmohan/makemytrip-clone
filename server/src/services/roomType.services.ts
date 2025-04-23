@@ -1,58 +1,86 @@
 import { HttpError } from "../utils/ErrorResponse.utils.js";
-import { Hotel, RoomType } from "../db/models/hotel.model.js";
-import { RequestWithUserAndBody } from "./hotel.services.js";
-import { IRoomType } from "../types/hotel.types.js";
-import { MongoServerError } from "mongodb";
+import { Hotel, IRoomTypeDocument, RoomType } from "../db/models/hotel.model.js";
+import { RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
+import { IRoomType, IRoomTypeResponse } from "../schemas/hotel.schema.js";
 import { RequestWithUser } from "../middlewares/auth.middleware.js";
-import { Response, NextFunction, Request } from "express";
-import { ApiResponse } from "../utils/ApiResponse.utils.js";
+import { Request } from "express";
 
-export const createRoomType = async (roomTypeData: RequestWithUserAndBody<IRoomType>) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const toRoomTypeResponse = (roomType: IRoomTypeDocument | any): IRoomTypeResponse => {
+  return {
+    id: roomType._id.toString(),
+    name: roomType.name,
+    hotel: roomType.hotel?.toString(),
+    description: roomType.description,
+    capacity: roomType.capacity,
+    pricePerNight: roomType.pricePerNight,
+    amenities: roomType.amenities,
+    images: roomType.images,
+    bedType: roomType.bedType,
+    countInStock: roomType.countInStock,
+  };
+};
+
+export const createRoomTypeService = async (req: RequestWithUserAndBody<IRoomType>): Promise<IRoomTypeResponse> => {
+  if (req.body.images.length === 0 || !Array.isArray(req.body.images)) {
+    console.log("secondary check for image triggered.");
+    throw new HttpError(401, "Images url are empty.At least one image is required.");
+  }
+  const roomType = new RoomType({ ...req.body });
   try {
-    if (roomTypeData.body.images.length === 0 || !Array.isArray(roomTypeData.body.images)) {
-      throw new HttpError(401, "Images url are empty.At least one image is required.");
-    }
-    const roomType = new RoomType({ ...roomTypeData.body, images: roomTypeData.body.images });
     await roomType.save();
-
-    await Hotel.findByIdAndUpdate(roomTypeData.body.hotel, {
+    await Hotel.findByIdAndUpdate(req.body.hotel, {
       $push: { roomTypes: roomType._id },
     });
-
-    return roomType;
+    return toRoomTypeResponse(roomType);
   } catch (error) {
     console.log(error);
-    throw new HttpError(500, "Failed to create room type in database", error);
+    throw new HttpError(500, "Failed to create room type in db", error);
   }
 };
 
-export const updateRoomTypeService = async (reqData: RequestWithUserAndBody<Partial<IRoomType>>) => {
+export const updateRoomTypeService = async (req: RequestWithUserAndBody<Partial<IRoomType>>): Promise<IRoomTypeResponse> => {
+  const { roomid } = req.params;
+  if (!roomid) {
+    throw new HttpError(400, "RoomId params is required for roomtype updatation.");
+  }
+
+  const roomType = await RoomType.findById(roomid);
+
+  if (!roomType) {
+    throw new HttpError(400, "Roomtype not found in db.");
+  }
+
+  const { hotel, ...restFields } = req.body;
+  Object.assign(roomType, restFields);
+
+  if (hotel && hotel.toString() !== roomType.hotel.toString()) {
+    const oldHotelId = roomType.hotel;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    roomType.hotel = hotel as any;
+    try {
+      await Hotel.findByIdAndUpdate(oldHotelId, {
+        $pull: { roomTypes: roomType._id },
+      });
+      await Hotel.findByIdAndUpdate(hotel, {
+        $push: { roomTypes: roomType._id },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new HttpError(500, "Failed to create room type in db", error);
+    }
+  }
   try {
-    const { roomid } = reqData.params;
-    if (!roomid) {
-      throw new HttpError(401, "RoomId params is required for roomtype updatation.");
-    }
-    const roomType = await RoomType.findById(roomid);
-    if (!roomType) {
-      throw new HttpError(404, "Roomtype not found in db.");
-    }
-
-    Object.assign(roomType, reqData.body);
     await roomType.save();
-
-    return roomType;
+    return toRoomTypeResponse(roomType);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    if (error?.cause instanceof MongoServerError && error?.cause?.code === 11000) {
-      const errorMessage = Object.keys(error?.cause.keyValue)[0];
-      throw new HttpError(401, `Hotel ${errorMessage} should be unique`, error.cause);
-    }
-    throw new HttpError(500, "Unexcepted Error : Unable to update hotel details.", error);
+    throw new HttpError(500, "Unexcepted Error : Unable to update hotel details in db.", error);
   }
 };
 
-export const deleteRoomTypeService = async (reqData: RequestWithUser) => {
-  const { roomid } = reqData.params;
+export const deleteRoomTypeService = async (req: RequestWithUser): Promise<IRoomTypeResponse> => {
+  const { roomid } = req.params;
   if (!roomid) {
     throw new HttpError(401, "RoomId params is required for roomtype deletion.");
   }
@@ -60,39 +88,28 @@ export const deleteRoomTypeService = async (reqData: RequestWithUser) => {
   if (!roomType) {
     throw new HttpError(404, "Roomtype not found in db or already deleted.");
   }
-
-  return roomType;
+  return toRoomTypeResponse(roomType);
 };
 
-export const getAllRoomTypesService = async () => {
+/////////////////////////////////////////////////////////////////////////////////////////
+
+export const getAllRoomTypesService = async (): Promise<IRoomTypeResponse[]> => {
   const allRoomTypes = await RoomType.find();
-  return allRoomTypes;
-};
-export const getRoomTypeByIdService = async (req: Request) => {
-  const { roomid } = req.params;
 
+  return allRoomTypes.map((roomtype) => toRoomTypeResponse(roomtype));
+};
+
+export const getRoomTypeByIdService = async (req: Request): Promise<IRoomTypeResponse> => {
+  const { roomid } = req.params;
   if (!roomid) {
     throw new HttpError(401, "roomid params is required to fetch roomtype details.");
   }
 
-  const roomType = await RoomType.findById({ _id: roomid });
-  console.log(roomType);
+  const roomType = await RoomType.findById(roomid);
+
   if (!roomType) {
     throw new HttpError(404, "Mentioned roomtype is not found in db.");
   }
 
-  return roomType;
-};
-export const checkRoomAvailabilityService = async () => {};
-export const bookRoomService = async () => {};
-export const deleteRoomType = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  try {
-    const deletedRoomType = await deleteRoomTypeService(req);
-    return res.status(201).json(new ApiResponse(true, "Roomtype deleted successfully", deletedRoomType));
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return next(error);
-    }
-    return next(new HttpError(500, "Unexcepted Error: Unable to delete the roomtype. "));
-  }
+  return toRoomTypeResponse(roomType);
 };

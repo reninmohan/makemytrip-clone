@@ -1,12 +1,18 @@
-import mongoose from "mongoose";
-import autopopulate from "mongoose-autopopulate";
+import mongoose, { Document } from "mongoose";
 
-const roomTypeSchema = new mongoose.Schema({
+import { IHotel, IHotelBooking, IRoomType } from "../../schemas/hotel.schema.js";
+import { HttpError } from "../../utils/ErrorResponse.utils.js";
+import { IUserDocument } from "./user.model.js";
+
+export interface IRoomTypeDocument extends Omit<IRoomType, "hotel">, Document {
+  hotel: mongoose.Schema.Types.ObjectId;
+}
+
+const RoomTypeSchema = new mongoose.Schema<IRoomTypeDocument>({
   hotel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Hotel",
     required: [true, "A roomtype should be associated with a hotel"],
-    autopopulate: true,
   },
   name: {
     type: String,
@@ -34,18 +40,19 @@ const roomTypeSchema = new mongoose.Schema({
     type: [String],
     required: [true, "At least one image is required"],
   },
-  available: {
-    type: Boolean,
-    default: true,
-  },
+  bedType: { type: String, required: true },
+  countInStock: { type: Number, required: true, min: 1 },
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-roomTypeSchema.plugin(autopopulate as any);
+const RoomType = mongoose.model<IRoomTypeDocument>("RoomType", RoomTypeSchema);
 
-const RoomType = mongoose.model("RoomType", roomTypeSchema);
+export interface IHotelDocument extends Document, IHotel {}
 
-const hotelSchema = new mongoose.Schema({
+// export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
+//   roomTypes: mongoose.Schema.Types.ObjectId;
+// }
+
+const HotelSchema = new mongoose.Schema<IHotelDocument>({
   name: {
     type: String,
     required: [true, "Hotel name is required"],
@@ -88,47 +95,47 @@ const hotelSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    default: 0,
-    min: 0,
+    default: 1,
+    min: 1,
     max: 5,
   },
   amenities: {
     type: [String],
     required: [true, "Minimium 1 amenities should be mentioned"],
   },
-
   roomTypes: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "RoomType",
-      autopopulate: true,
     },
   ],
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-hotelSchema.plugin(autopopulate as any);
+const Hotel = mongoose.model<IHotelDocument>("Hotel", HotelSchema);
 
-const Hotel = mongoose.model("Hotel", hotelSchema);
+export interface IHotelBookingDocument extends Omit<IHotelBooking, "user" | "hotel" | "roomType">, Document {
+  hotel: mongoose.Schema.Types.ObjectId | IHotelDocument;
+  user: mongoose.Schema.Types.ObjectId | IUserDocument;
+  roomType: mongoose.Schema.Types.ObjectId | IRoomTypeDocument;
+}
 
-const hotelBookingSchema = new mongoose.Schema({
+// export interface IHotelBookingDocument extends IHotelBooking, Document {}
+
+const HotelBookingSchema = new mongoose.Schema<IHotelBookingDocument>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "User details are required for booking"],
-    autopopulate: true,
   },
   hotel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Hotel",
     required: [true, "Hotel details are required for booking"],
-    autopopulate: { maxDepth: 1 },
   },
   roomType: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "RoomType",
     required: [true, "Roomtype is required for booking"],
-    autopopulate: true,
   },
   checkInDate: {
     type: Date,
@@ -167,20 +174,17 @@ const hotelBookingSchema = new mongoose.Schema({
   },
   bookingDate: {
     type: Date,
-    default: Date.now,
+    default: () => Date.now(),
   },
 });
 
-hotelBookingSchema.pre("save", function (next) {
+HotelBookingSchema.pre("save", function (next) {
   if (this.checkInDate >= this.checkOutDate) {
-    return next(new Error("Check-in date must be before check-out date"));
+    return next(new HttpError(400, "Check-in date must be before check-out date"));
   }
   next();
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-hotelBookingSchema.plugin(autopopulate as any);
-
-const HotelBooking = mongoose.model("HotelBooking", hotelBookingSchema);
+const HotelBooking = mongoose.model<IHotelBookingDocument>("HotelBooking", HotelBookingSchema);
 
 export { Hotel, RoomType, HotelBooking };

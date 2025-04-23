@@ -7,7 +7,7 @@ export const userRegistrationSchema = z.object({
   fullName: z.string().min(3, "FullName must be at least 3 characters.").toLowerCase(),
   email: z.string().email("Invalid email format").toLowerCase(),
   password: z.string().min(8, "Password must be atleast 8 characters"),
-  role: z.enum(["user", "admin"]).default("user").optional(),
+  role: z.enum(["user", "admin"]).default("user"),
   phoneNumber: z.string().min(10, "Phone number must atleast be 10 digits").regex(/^\d+$/, { message: "Phone number must contain digits only" }),
 });
 
@@ -16,5 +16,5 @@ export const userProfileUpdateSchema = userRegistrationSchema.omit({ role: true,
 export const userPasswordChangeSchema = userRegistrationSchema.pick({ password: true });
 
 //This line convert zod schema to typescript type
-export type UserRegistration = z.infer<typeof userRegistrationSchema>;
-export type UserLogin = z.infer<typeof userLoginSchema>;
+export type IUserRegistration = z.infer<typeof userRegistrationSchema>;
+export type IUserLogin = z.infer<typeof userLoginSchema>;

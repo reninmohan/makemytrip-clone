@@ -1,20 +1,15 @@
 import express from "express";
+import { fetchAllHotels, fetchAllRoomsByHotel, fetchSpecificHotel } from "../controllers/hotel.controller.js";
 
 const hotelRouter = express.Router();
 
 //For all hotels details
-hotelRouter.get("/");
+hotelRouter.get("/", fetchAllHotels);
 
 //For getting details for a specific hotel
-hotelRouter.get("/:id");
+hotelRouter.get("/:hotelId", fetchSpecificHotel);
 
 //Fot getting all rooms details in a hotel
-hotelRouter.get("/:hotelId/rooms");
-
-//Check room availability for given dates
-hotelRouter.post("/:hotelId/availability");
-
-//For booking a room at the hotel
-hotelRouter.post("/:hotelId/book");
+hotelRouter.get("/:hotelId/rooms", fetchAllRoomsByHotel);
 
 export default hotelRouter;

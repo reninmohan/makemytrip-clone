@@ -1,20 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { createUser as createUserFn, updateProfileService, changeProfilePasswordService } from "../services/user.services.js";
+import { NextFunction, Response } from "express";
+import { updateProfileService, updateProfilePasswordService } from "../services/user.services.js";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { RequestWithUser } from "../middlewares/auth.middleware.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-
-export const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = await createUserFn(req.body);
-    return res.status(201).json(new ApiResponse(true, "User created successfully", user));
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return next(error);
-    }
-    return next(new HttpError(500, "Unexpected Error: Unable to create user", error));
-  }
-};
 
 //Only use after authorization middleware only
 //No different service
@@ -39,9 +27,9 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
   }
 };
 
-export const changeProfilePassword = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+export const updateProfilePassword = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const user = await changeProfilePasswordService(req);
+    const user = await updateProfilePasswordService(req);
     return res.status(201).json(new ApiResponse(true, "User password updated successfully", user));
   } catch (error) {
     if (error instanceof HttpError) {

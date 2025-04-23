@@ -1,13 +1,13 @@
 import mongoose, { Document } from "mongoose";
-import { IUser } from "../../types/user.types.js";
+import { IUserRegistration } from "../../schemas/user.schema.js";
 
 // Document is a mongoose special type
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends IUserRegistration, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new mongoose.Schema<IUserDocument>(
+const UserSchema = new mongoose.Schema<IUserDocument>(
   {
     fullName: { type: String, required: true, trim: true },
     password: { type: String, required: true },
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
   },
 );
 
-export const User = mongoose.model<IUserDocument>("User", userSchema);
+export const User = mongoose.model<IUserDocument>("User", UserSchema);
 
 //Public Routes
 

@@ -1,9 +1,9 @@
 import { Request, NextFunction, Response } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
-import { IVerifyToken } from "../services/auth.services.js";
 import { IMulterFile } from "./imageUpload.middleware.js";
+import { IUserResponse } from "../types/user.types.js";
 
-export const testmidandcontroller = async (req: Request & { user?: IVerifyToken; files?: IMulterFile }, res: Response, next: NextFunction) => {
+export const testmidandcontroller = async (req: Request & { user?: IUserResponse; files?: IMulterFile }, res: Response, next: NextFunction) => {
   try {
     const images = req.body.images;
     res.json({

@@ -1,11 +1,12 @@
 import { Response, NextFunction, Request } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
-import { createRoomType as createRoomTypeService, getAllRoomTypesService, getRoomTypeByIdService, updateRoomTypeService } from "../services/roomType.services.js";
+import { createRoomTypeService, deleteRoomTypeService, getAllRoomTypesService, getRoomTypeByIdService, updateRoomTypeService } from "../services/roomType.services.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-import { RequestWithUserAndBody } from "../services/hotel.services.js";
-import { IRoomType } from "../types/hotel.types.js";
+import { RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
+import { IRoomType } from "../schemas/hotel.schema.js";
+import { RequestWithUser } from "../middlewares/auth.middleware.js";
 
-//Protected Routes
+//Protected Routes admin control routes
 
 export const createRoomType = async (req: RequestWithUserAndBody<IRoomType>, res: Response, next: NextFunction) => {
   try {
@@ -31,6 +32,20 @@ export const updateRoomType = async (req: RequestWithUserAndBody<Partial<IRoomTy
   }
 };
 
+export const deleteRoomType = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  try {
+    const deletedRoomType = await deleteRoomTypeService(req);
+    return res.status(201).json(new ApiResponse(true, "Roomtype deleted successfully", deletedRoomType));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Unable to delete the roomtype. "));
+  }
+};
+
+//Unprotected public routes
+
 export const getAllRoomTypes = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const allRoomTypes = await getAllRoomTypesService();
@@ -45,7 +60,7 @@ export const getAllRoomTypes = async (_req: Request, res: Response, next: NextFu
 
 export const getRoomTypeById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roomType = getRoomTypeByIdService(req);
+    const roomType = await getRoomTypeByIdService(req);
     return res.status(201).json(new ApiResponse(true, "Roomtype details fetched", roomType));
   } catch (error) {
     if (error instanceof HttpError) {
@@ -55,24 +70,24 @@ export const getRoomTypeById = async (req: Request, res: Response, next: NextFun
   }
 };
 
-export const checkRoomAvailability = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    return res.status(201).json(new ApiResponse(true, "", null));
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return next(error);
-    }
-    return next(new HttpError(500, "Unexcepted Error: . "));
-  }
-};
+// export const checkRoomAvailability = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     return res.status(201).json(new ApiResponse(true, "", null));
+//   } catch (error) {
+//     if (error instanceof HttpError) {
+//       return next(error);
+//     }
+//     return next(new HttpError(500, "Unexcepted Error: . "));
+//   }
+// };
 
-export const bookRoom = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    return res.status(201).json(new ApiResponse(true, "", null));
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return next(error);
-    }
-    return next(new HttpError(500, "Unexcepted Error: . "));
-  }
-};
+// export const bookRoom = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     return res.status(201).json(new ApiResponse(true, "", null));
+//   } catch (error) {
+//     if (error instanceof HttpError) {
+//       return next(error);
+//     }
+//     return next(new HttpError(500, "Unexcepted Error: . "));
+//   }
+// };

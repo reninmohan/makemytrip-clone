@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { z } from "zod";
+import { IUserResponse } from "../types/user.types.js";
 
 // helper function for schema
 const isValidObjectId = (value: string) => {
@@ -22,10 +23,7 @@ const isValidUrl = (value: string) => {
 const urlSchema = z.string().refine(isValidUrl, {
   message: "Invalid URL format",
 });
-
-// Roomtype related schema
-
-// Hotel booking related schema
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 //Hotel related schema
 const coordinatesSchema = z
@@ -48,17 +46,30 @@ export const hotelSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters long.").max(1000, "Description cannot exceed 1000 characters.").trim(),
   location: hotelLocationSchema,
   images: z.array(urlSchema).min(1, "At least one image is required.").max(6, "Cannot have more than 6 images."),
-  rating: z.coerce.number().min(0).max(5).default(1).optional(),
+  rating: z.coerce.number().min(1).max(5).default(1),
   amenities: z.array(z.string().trim()).min(1, "At least one amenity is required.").max(20, "Cannot have more than 20 amenities."),
-  roomTypes: z.array(objectIdSchema).optional().default([]),
+  roomTypes: z.array(objectIdSchema).default([]),
 });
 
+export type IHotel = z.infer<typeof hotelSchema>;
+
+export interface IHotelResponse extends Omit<IHotel, "roomTypes"> {
+  id: string;
+  roomTypes: (IRoomType & { id: string })[];
+}
+
+//For roomtype create validation
 export const createHotelSchema = hotelSchema.omit({
-  rating: true,
   roomTypes: true,
+  rating: true,
 });
 
+//For roomtype update validation
 export const updateHotelSchema = hotelSchema.partial();
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Roomtype related schema
 
 export const roomTypeSchema = z.object({
   name: z.string().min(1, "Room name is required.").trim(),
@@ -66,17 +77,27 @@ export const roomTypeSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters long.").max(1000, "Description cannot exceed 1000 characters.").trim(),
   capacity: z.coerce.number().min(1, "Capacity must be at least 1."),
   pricePerNight: z.coerce.number().positive("Price must be greater than 0.").max(100000, "Price cannot exceed 100,000 per night."),
-  amenities: z.array(z.string()).min(1, "At least one amenity is required.").max(15, "Cannot have more than 15 amenities."),
+  amenities: z.array(z.string().trim()).min(1, "At least one amenity is required.").max(15, "Cannot have more than 15 amenities."),
   images: z.array(urlSchema).min(1, "At least one image is required.").max(6, "Cannot have more than 6 images."),
   bedType: z.string().min(1, "1 Bed Type is required."),
   countInStock: z.coerce.number(),
 });
 
+export const createRoomTypeSchema = roomTypeSchema;
+
+export type IRoomType = z.infer<typeof roomTypeSchema>;
+
+export interface IRoomTypeResponse extends Omit<IRoomType, "hotel"> {
+  id: string;
+  hotel: string;
+}
+
 export const updateRoomTypeSchema = roomTypeSchema.partial();
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Hotel booking related schema
+
 const guestSchema = z.object({
   adults: z.coerce.number().min(1, "At least one adult is required."),
   children: z.coerce.number().min(0).default(0),
@@ -96,6 +117,40 @@ export const hotelBookingSchema = z
     bookingDate: z.coerce.date().default(() => new Date()),
   })
   .refine((data) => data.checkOutDate > data.checkInDate, { message: "Check-out date must be after check-in date.", path: ["checkOutDate"] });
+
+export type IHotelBooking = z.infer<typeof hotelBookingSchema>;
+
+export const createHotelBookingSchema = z
+  .object({
+    hotel: objectIdSchema,
+    roomType: objectIdSchema,
+    checkInDate: z.coerce.date(),
+    checkOutDate: z.coerce.date(),
+    guests: guestSchema,
+  })
+  .refine((data) => data.checkOutDate > data.checkInDate, {
+    message: "Check-out date must be after the check-in date",
+    path: ["checkOutDate"],
+  });
+
+export type ICreateHotelBooking = z.infer<typeof createHotelBookingSchema>;
+
+export interface IHotelBookingResponse {
+  id: string;
+  user: IUserResponse;
+  hotel: IHotelResponse;
+  roomType: IRoomTypeResponse;
+  checkInDate: Date;
+  checkOutDate: Date;
+  guests: {
+    adults: number;
+    children: number;
+  };
+  totalPrice: number;
+  status: "pending" | "confirmed" | "cancelled" | "completed";
+  paymentStatus: "pending" | "paid" | "refunded";
+  bookingDate: Date;
+}
 
 //Used for input validation only no DB required.
 export const hotelSearchParamsSchema = z

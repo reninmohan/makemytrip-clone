@@ -1,9 +1,11 @@
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, Request } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-import { RequestWithUserAndBody, updateHotelService, createHotelService, deleteHotelService, fetchHotelService } from "../services/hotel.services.js";
-import { IHotel } from "../types/hotel.types.js";
-import { RequestWithUser } from "../middlewares/auth.middleware.js";
+import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, fetchAllHotelsService, fetchAllRoomsByHotelService, checkHotelAvailabilityService } from "../services/hotel.services.js";
+import { IHotel } from "../schemas/hotel.schema.js";
+import { RequestWithUser, RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
+
+// Admin related routes only
 
 export const createHotel = async (req: RequestWithUserAndBody<IHotel>, res: Response, next: NextFunction) => {
   try {
@@ -41,9 +43,9 @@ export const deleteHotel = async (req: RequestWithUser, res: Response, next: Nex
   }
 };
 
-export const fetchHotel = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+export const fetchSpecificHotel = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const hotel = await fetchHotelService(req);
+    const hotel = await fetchSpecficHotelService(req);
 
     return res.status(200).json(new ApiResponse(true, "Fetch Hotel details successfully.", hotel));
   } catch (error) {
@@ -53,3 +55,45 @@ export const fetchHotel = async (req: RequestWithUser, res: Response, next: Next
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch hotel details.", error));
   }
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Public routes for hotel routes
+
+export const fetchAllHotels = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const hotels = await fetchAllHotelsService();
+    return res.status(200).json(new ApiResponse(true, "Fetch All  Hotel details successfully.", hotels));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    console.log(error);
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel details.", error));
+  }
+};
+
+export const fetchAllRoomsByHotel = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const hotels = await fetchAllRoomsByHotelService(req);
+    return res.status(200).json(new ApiResponse(true, "Fetch all Room details for the hotel  successfully.", hotels));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch all room details for hotel.", error));
+  }
+};
+
+export const checkHotelAvailability = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  try {
+    const hotels = await checkHotelAvailabilityService(req);
+    return res.status(200).json(new ApiResponse(true, "Fetch all Room details for the hotel  successfully.", hotels));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch all room details for hotel.", error));
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////

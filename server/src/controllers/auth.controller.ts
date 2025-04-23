@@ -1,44 +1,43 @@
 import { NextFunction, Request, Response } from "express";
-import { createToken, refreshToken } from "../services/auth.services.js";
+import { createTokenService, createUserService, refreshAccessTokenService } from "../services/auth.services.js";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { RequestWithUser } from "../middlewares/auth.middleware.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
 import { setRefreshToken } from "../utils/setRefreshToken.utils.js";
 
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const response = await createUserService(req.body);
+    return res.status(201).json(new ApiResponse(true, "User created successfully", response));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexpected Error: Unable to create user", error));
+  }
+};
+
 export const loginUserAndCreateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await createToken(req.body);
-    const { accessToken, refreshToken } = user;
-
+    const user = await createTokenService(req.body);
+    const { refreshToken, ...response } = user;
     setRefreshToken(res, refreshToken);
-
-    const response = { id: user.id, fullName: user.fullName, email: user.email, role: user.role, phone: user.phoneNumber, accessToken };
-
     return res.status(200).json(new ApiResponse(true, "User logged in and token created", response));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
     }
-    return next(new HttpError(500, "Unexpected Error: Unable to auth user", error));
-  }
-};
-
-export const loginSuccessTest = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  try {
-    const userData = req.user;
-    return res.status(200).json(new ApiResponse(true, "User data fetched successfully", userData));
-  } catch (error) {
-    return next(new HttpError(500, "Unexpected Error: Unable to login user", error));
+    return next(new HttpError(500, "Unexpected Error: Unable to authenticate user and issue tokens", error));
   }
 };
 
 export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tokenResponse = await refreshToken(req);
+    const tokenResponse = await refreshAccessTokenService(req);
 
-    const { accessToken, refreshToken: newRefreshToken } = tokenResponse;
+    const { accessToken, refreshToken } = tokenResponse;
 
-    setRefreshToken(res, newRefreshToken);
+    setRefreshToken(res, refreshToken);
 
     return res.status(200).json(new ApiResponse(true, "Access & Refresh token refreshed", { accessToken }));
   } catch (error) {
@@ -46,6 +45,15 @@ export const refreshAccessToken = async (req: Request, res: Response, next: Next
       return next(error);
     }
     return next(new HttpError(500, "Unnexpected Error: Unable to refresh tokens", error));
+  }
+};
+
+export const loginSuccessTest = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  try {
+    const response = req.user;
+    return res.status(200).json(new ApiResponse(true, "User data fetched successfully", response));
+  } catch (error) {
+    return next(new HttpError(500, "Unexpected Error: Unable to login user", error));
   }
 };
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { bookRoom, checkRoomAvailability, getRoomTypeById } from "../controllers/roomtype.controller.js";
+import { getRoomTypeById } from "../controllers/roomtype.controller.js";
 import { getAllRoomTypes } from "../controllers/roomtype.controller.js";
 const roomTypeRouter = express.Router();
 
@@ -7,16 +7,6 @@ const roomTypeRouter = express.Router();
 roomTypeRouter.get("/", getAllRoomTypes);
 
 // Get specific room type details
-roomTypeRouter.get("/:id", getRoomTypeById);
-
-// Check availability of a room type
-roomTypeRouter.post("/:id/availability", async (req, res, next) => {
-  await checkRoomAvailability(req, res, next);
-});
-
-// Book a room type
-roomTypeRouter.post("/:id/book", async (req, res, next) => {
-  await bookRoom(req, res, next);
-});
+roomTypeRouter.get("/:roomid", getRoomTypeById);
 
 export default roomTypeRouter;
