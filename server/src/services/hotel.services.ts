@@ -53,7 +53,7 @@ export const createHotelService = async (req: RequestWithUserAndBody<IHotel>): P
 export const updateHotelService = async (req: RequestWithUserAndBody<Partial<IHotel>>): Promise<IHotelResponse> => {
   const { hotelId } = req.params;
   if (!hotelId) {
-    throw new HttpError(401, "Hotel Id params is required for updatation.");
+    throw new HttpError(400, "Hotel Id params is required for updatation.");
   }
   const hotel = await Hotel.findById(hotelId);
   if (!hotel) {
@@ -111,15 +111,14 @@ export const fetchSpecficHotelService = async (req: RequestWithUser): Promise<IH
 
 //Fetch all hotel with filteration.
 export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number; totalPages: number; currentPage: number }> => {
-  const { city, state, country, amenities, minPrice, maxPrice, guests, rating, page = "1", limit = "10" } = req.query;
+  const { city, state, country, amenities, minPrice, maxPrice, capacity, rating, page = "1", limit = "10", checkInDate, checkOutDate } = req.query;
 
-  console.log(req.query);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: any = {};
 
   if (city) query["location.city"] = new RegExp(`^${city}$`, "i");
   if (state) query["location.state"] = new RegExp(`^${state}$`, "i");
-  if (country) query["location.country"] = country;
+  if (country) query["location.country"] = { $regex: new RegExp(country as string, "i") };
 
   if (rating) query.rating = { $gte: Number(rating) };
 
@@ -133,17 +132,34 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
   const allHotels = await Hotel.find(query).populate("roomTypes");
 
   let filteredHotels = allHotels;
-  if (minPrice || maxPrice || guests) {
+
+  if (minPrice || maxPrice || capacity) {
     // Filter by price and guest capacity inside roomTypes
     filteredHotels = allHotels.filter((hotel) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hotel.roomTypes.some((room: any) => {
-        const matchesPrice = (!minPrice || room.pricePerNight >= Number(minPrice)) && (!maxPrice || room.pricePerNight <= Number(maxPrice));
-        const matchesGuests = !guests || room.capacity >= Number(guests);
+        const matchesPrice = (minPrice ? room.pricePerNight >= Number(minPrice) : true) && (maxPrice ? room.pricePerNight <= Number(maxPrice) : true);
+
+        const matchesGuests = capacity ? room.capacity >= Number(capacity) : true;
 
         return matchesPrice && matchesGuests;
       }),
     );
+  }
+
+  if (checkInDate && checkOutDate) {
+    const conflictingBookings = await HotelBooking.find({
+      $or: [
+        {
+          checkInDate: { $lt: new Date(checkOutDate as string) },
+          checkOutDate: { $gt: new Date(checkInDate as string) },
+        },
+      ],
+    }).select("roomType");
+
+    const unavailableRoomTypeIds = conflictingBookings.map((b) => b.roomType.toString());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filteredHotels = filteredHotels.filter((hotel) => hotel.roomTypes.some((room: any) => !unavailableRoomTypeIds.includes(room._id.toString())));
   }
 
   // Pagination
@@ -162,8 +178,8 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
   }
 
   return {
-    hotels: paginatedHotels.map(toHotelResponse),
-    totalHotels,
+    hotels: paginatedHotels.map((hotel) => toHotelResponse(hotel)),
+    totalHotels: totalHotels,
     totalPages,
     currentPage: Number(page),
   };

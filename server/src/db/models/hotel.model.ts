@@ -8,7 +8,7 @@ export interface IRoomTypeDocument extends Omit<IRoomType, "hotel">, Document {
   hotel: mongoose.Schema.Types.ObjectId;
 }
 
-const RoomTypeSchema = new mongoose.Schema<IRoomTypeDocument>({
+const RoomTypeMongooseSchema = new mongoose.Schema<IRoomTypeDocument>({
   hotel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Hotel",
@@ -44,7 +44,7 @@ const RoomTypeSchema = new mongoose.Schema<IRoomTypeDocument>({
   countInStock: { type: Number, required: true, min: 1 },
 });
 
-const RoomType = mongoose.model<IRoomTypeDocument>("RoomType", RoomTypeSchema);
+const RoomType = mongoose.model<IRoomTypeDocument>("RoomType", RoomTypeMongooseSchema);
 
 export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
   roomTypes: IRoomTypeDocument[];
@@ -54,7 +54,7 @@ export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
 //   roomTypes: mongoose.Schema.Types.ObjectId;
 // }
 
-const HotelSchema = new mongoose.Schema<IHotelDocument>({
+const HotelMongooseSchema = new mongoose.Schema<IHotelDocument>({
   name: {
     type: String,
     required: [true, "Hotel name is required"],
@@ -113,7 +113,7 @@ const HotelSchema = new mongoose.Schema<IHotelDocument>({
   ],
 });
 
-const Hotel = mongoose.model<IHotelDocument>("Hotel", HotelSchema);
+const Hotel = mongoose.model<IHotelDocument>("Hotel", HotelMongooseSchema);
 
 export interface IHotelBookingDocument extends Omit<IHotelBooking, "user" | "hotel" | "roomType">, Document {
   hotel: mongoose.Schema.Types.ObjectId | IHotelDocument;
@@ -123,7 +123,7 @@ export interface IHotelBookingDocument extends Omit<IHotelBooking, "user" | "hot
 
 // export interface IHotelBookingDocument extends IHotelBooking, Document {}
 
-const HotelBookingSchema = new mongoose.Schema<IHotelBookingDocument>({
+const HotelBookingMongooseSchema = new mongoose.Schema<IHotelBookingDocument>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -180,13 +180,13 @@ const HotelBookingSchema = new mongoose.Schema<IHotelBookingDocument>({
   },
 });
 
-HotelBookingSchema.pre("save", function (next) {
+HotelBookingMongooseSchema.pre("save", function (next) {
   if (this.checkInDate >= this.checkOutDate) {
     return next(new HttpError(400, "Check-in date must be before check-out date"));
   }
   next();
 });
 
-const HotelBooking = mongoose.model<IHotelBookingDocument>("HotelBooking", HotelBookingSchema);
+const HotelBooking = mongoose.model<IHotelBookingDocument>("HotelBooking", HotelBookingMongooseSchema);
 
 export { Hotel, RoomType, HotelBooking };

@@ -6,16 +6,17 @@ import adminRouter from "./admin.routes.js";
 import roomTypeRouter from "./roomtypes.routes.js";
 import availabilityRoute from "./availability.routes.js";
 import bookingRouter from "./booking.routes.js";
+import flightRouter from "./flight.routes.js";
 
 const indexRouter = Router();
 
 indexRouter.use("/admin", adminRouter);
 indexRouter.use("/auth", authRouter);
-indexRouter.use("/hotels", hotelRouter);
-indexRouter.use("/roomtypes", roomTypeRouter);
-indexRouter.use("/users", userRouter);
 indexRouter.use("/availability", availabilityRoute);
 indexRouter.use("/booking", bookingRouter);
-// indexRouter.use("/flights");
+indexRouter.use("/flights", flightRouter);
+indexRouter.use("/hotels", hotelRouter);
+indexRouter.use("/users", userRouter);
+indexRouter.use("/roomtypes", roomTypeRouter);
 
 export default indexRouter;

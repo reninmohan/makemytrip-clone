@@ -22,7 +22,7 @@ export const createHotel = async (req: RequestWithUserAndBody<IHotel>, res: Resp
 export const updateHotel = async (req: RequestWithUserAndBody<IHotel>, res: Response, next: NextFunction) => {
   try {
     const hotel = await updateHotelService(req);
-    return res.status(201).json(new ApiResponse(true, "Hotel details updated successfully", hotel));
+    return res.status(200).json(new ApiResponse(true, "Hotel details updated successfully", hotel));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
@@ -67,7 +67,6 @@ export const filterAndSearchAllHotels = async (req: Request, res: Response, next
     if (error instanceof HttpError) {
       return next(error);
     }
-    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel details.", error));
   }
 };

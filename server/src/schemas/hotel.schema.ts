@@ -87,6 +87,10 @@ export const createRoomTypeSchema = roomTypeSchema;
 
 export type IRoomType = z.infer<typeof roomTypeSchema>;
 
+export interface IRoomTypeH extends Omit<IRoomType, "hotel"> {
+  hotel: string;
+}
+
 export interface IRoomTypeResponse extends Omit<IRoomType, "hotel"> {
   id: string;
   hotel: string;

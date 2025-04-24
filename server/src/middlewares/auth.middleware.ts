@@ -16,6 +16,7 @@ export interface RequestWithUserAndBody<T> extends Request {
   user?: IUserResponse;
   body: T & {
     images?: string[];
+    logo?: string;
   };
 }
 

@@ -94,7 +94,6 @@ export const createHotelBookingService = async (req: RequestWithUserAndBody<ICre
     }
     return toHotelBookingResponse(populatedBooking);
   } catch (error) {
-    console.error(error);
     throw new HttpError(400, "Input Validation Failed during hotel Booking", error);
   }
 };

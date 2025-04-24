@@ -7,7 +7,7 @@ export interface IUserDocument extends IUserRegistration, Document {
   updatedAt: Date;
 }
 
-const UserSchema = new mongoose.Schema<IUserDocument>(
+const UserMongooseSchema = new mongoose.Schema<IUserDocument>(
   {
     fullName: { type: String, required: true, trim: true },
     password: { type: String, required: true },
@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema<IUserDocument>(
   },
 );
 
-export const User = mongoose.model<IUserDocument>("User", UserSchema);
+export const User = mongoose.model<IUserDocument>("User", UserMongooseSchema);
 
 //Public Routes
 

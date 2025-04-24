@@ -42,7 +42,6 @@ export const fetchAllUserHotelBooking = async (req: RequestWithUser, res: Respon
     if (error instanceof HttpError) {
       return next(error);
     }
-    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel booking details of user", error));
   }
 };
@@ -55,7 +54,6 @@ export const fetchSpecificUserHotelBooking = async (req: RequestWithUser, res: R
     if (error instanceof HttpError) {
       return next(error);
     }
-    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel booking details of user", error));
   }
 };
@@ -68,7 +66,6 @@ export const deleteSpecificUserHotelBooking = async (req: RequestWithUser, res: 
     if (error instanceof HttpError) {
       return next(error);
     }
-    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel booking details of user", error));
   }
 };

@@ -4,7 +4,7 @@ import { filterAndSearchAllHotels, fetchAllRoomsByHotel, fetchSpecificHotel } fr
 const hotelRouter = express.Router();
 
 //For all hotels details
-hotelRouter.get("/", filterAndSearchAllHotels);
+hotelRouter.get("/search", filterAndSearchAllHotels);
 
 //For getting details for a specific hotel
 hotelRouter.get("/:hotelId", fetchSpecificHotel);

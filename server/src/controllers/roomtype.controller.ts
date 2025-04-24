@@ -23,12 +23,11 @@ export const createRoomType = async (req: RequestWithUserAndBody<IRoomType>, res
 export const updateRoomType = async (req: RequestWithUserAndBody<Partial<IRoomType>>, res: Response, next: NextFunction) => {
   try {
     const updatetRoomType = await updateRoomTypeService(req);
-    return res.status(201).json(new ApiResponse(true, "Roomtype updated successfully.", updatetRoomType));
+    return res.status(200).json(new ApiResponse(true, "Roomtype updated successfully.", updatetRoomType));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
     }
-    console.log(error);
     return next(new HttpError(500, "Unexcepted Error: Unable to update roomtype."));
   }
 };
@@ -36,7 +35,7 @@ export const updateRoomType = async (req: RequestWithUserAndBody<Partial<IRoomTy
 export const deleteRoomType = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const deletedRoomType = await deleteRoomTypeService(req);
-    return res.status(201).json(new ApiResponse(true, "Roomtype deleted successfully", deletedRoomType));
+    return res.status(200).json(new ApiResponse(true, "Roomtype deleted successfully", deletedRoomType));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
@@ -50,7 +49,7 @@ export const deleteRoomType = async (req: RequestWithUser, res: Response, next: 
 export const getAllRoomTypes = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const allRoomTypes = await getAllRoomTypesService();
-    return res.status(201).json(new ApiResponse(true, "All Roomtype details fetched successfully.", allRoomTypes));
+    return res.status(200).json(new ApiResponse(true, "All Roomtype details fetched successfully.", allRoomTypes));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
@@ -62,7 +61,7 @@ export const getAllRoomTypes = async (_req: Request, res: Response, next: NextFu
 export const getRoomTypeById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const roomType = await getRoomTypeByIdService(req);
-    return res.status(201).json(new ApiResponse(true, "Roomtype details fetched", roomType));
+    return res.status(200).json(new ApiResponse(true, "Roomtype details fetched", roomType));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);

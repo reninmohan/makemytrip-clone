@@ -54,3 +54,28 @@ export const handleImageUpload = async (req: RequestWithUser & { files?: IMulter
     return next(new HttpError(500, "Unexpected Error: Failed to process the images.", error));
   }
 };
+
+export const handleSingleImageUpload = async (req: RequestWithUser & { file?: IMulterFile }, _res: Response, next: NextFunction) => {
+  try {
+    if (req.method === "PUT" && !req.file) {
+      return next();
+    }
+
+    if (!req.file) {
+      throw new HttpError(400, "Image is required");
+    }
+
+    const result = await uploadOnCloudinary(req.file.path);
+    if (!result) {
+      throw new HttpError(500, "Failed to upload image to Cloudinary.");
+    }
+    req.body.logo = result.url;
+
+    return next();
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexpected Error:  Failed to upload image", error));
+  }
+};

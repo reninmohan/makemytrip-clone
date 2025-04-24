@@ -10,6 +10,7 @@ export const validateInput = (schema: ZodSchema) => {
       if (!req.body || Object.keys(req.body).length === 0) {
         return next(new HttpError(400, "Request body not received in post request."));
       }
+
       await schema.parseAsync(req.body);
       console.log("Validation was successful console logging  only for testing purpose..");
       return next();

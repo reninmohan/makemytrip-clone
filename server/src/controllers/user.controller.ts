@@ -9,7 +9,7 @@ import { ApiResponse } from "../utils/ApiResponse.utils.js";
 export const fetchProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userData = req.user;
-    return res.status(200).json(new ApiResponse(true, "User data fetched successfully", userData));
+    return res.status(201).json(new ApiResponse(true, "User data fetched successfully", userData));
   } catch (error) {
     return next(new HttpError(500, "Unexpected Error: Unable to fetch user details", error));
   }
@@ -18,7 +18,7 @@ export const fetchProfile = async (req: RequestWithUser, res: Response, next: Ne
 export const updateProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const updatedUserData = await updateProfileService(req);
-    return res.status(201).json(new ApiResponse(true, "User profile details updated successfully", updatedUserData));
+    return res.status(200).json(new ApiResponse(true, "User profile details updated successfully", updatedUserData));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
@@ -30,7 +30,7 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
 export const updateProfilePassword = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const user = await updateProfilePasswordService(req);
-    return res.status(201).json(new ApiResponse(true, "User password updated successfully", user));
+    return res.status(200).json(new ApiResponse(true, "User password updated successfully", user));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);

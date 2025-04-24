@@ -34,7 +34,6 @@ export const createRoomTypeService = async (req: RequestWithUserAndBody<IRoomTyp
     });
     return toRoomTypeResponse(roomType);
   } catch (error) {
-    console.log(error);
     throw new HttpError(500, "Failed to create room type in db", error);
   }
 };
@@ -66,7 +65,6 @@ export const updateRoomTypeService = async (req: RequestWithUserAndBody<Partial<
         $push: { roomTypes: roomType._id },
       });
     } catch (error) {
-      console.log(error);
       throw new HttpError(500, "Failed to create room type in db", error);
     }
   }
