@@ -1,7 +1,7 @@
 import { Response, NextFunction, Request } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, fetchAllRoomsByHotelService, checkHotelAvailabilityService, filterAndSearchAllHotelsService } from "../services/hotel.services.js";
+import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, checkHotelAvailabilityService, fetchAllRoomsByHotelService, filterAndSearchAllHotelsService } from "../services/hotel.services.js";
 import { IHotel } from "../schemas/hotel.schema.js";
 import { RequestWithUser, RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
 

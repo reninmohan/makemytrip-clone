@@ -11,7 +11,8 @@ export const validateInput = (schema: ZodSchema) => {
         return next(new HttpError(400, "Request body not received in post request."));
       }
 
-      await schema.parseAsync(req.body);
+      const validateData = await schema.parseAsync(req.body);
+      req.body = validateData;
       console.log("Validation was successful console logging  only for testing purpose..");
       return next();
     } catch (error) {

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { z } from "zod";
+import { capitalizeFirstLetter } from "../utils/capatilzeLetter.util.js";
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Airline related schema
@@ -18,8 +19,17 @@ const urlSchema = z.string().refine(isValidUrl, {
 });
 
 export const airlineSchema = z.object({
-  name: z.string().min(1, "Name of airline is required").toLowerCase().trim(),
-  code: z.string().min(1, "Airline code is too short.").max(5, "Airline code is too long").toUpperCase(),
+  name: z
+    .string()
+    .min(1, "Name of airline is required")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  code: z
+    .string()
+    .min(1, "Airline code is too short.")
+    .max(10, "Airline code is too long")
+    .transform((val) => val.trim())
+    .transform((val) => val.toUpperCase()),
   logo: urlSchema,
 });
 
@@ -36,10 +46,27 @@ export interface IAirlineResponse extends IAirline {
 // Airport related schema
 
 export const airportSchema = z.object({
-  name: z.string().min(1, "Airport name is too short").trim().toLowerCase(),
-  code: z.string().min(1, "Airport code is too short").max(5, "Airport code is too long").toUpperCase(),
-  city: z.string().min(1, "City name is too short.").trim().toLowerCase(),
-  country: z.string().min(1, "Country name is too short.").trim().toLowerCase(),
+  name: z
+    .string()
+    .min(1, "Airport name is too short")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  code: z
+    .string()
+    .min(1, "Airport code is too short")
+    .max(10, "Airport code is too long")
+    .transform((val) => val.trim())
+    .transform((val) => val.toUpperCase()),
+  city: z
+    .string()
+    .min(1, "City name is too short.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  country: z
+    .string()
+    .min(1, "Country name is too short.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
 });
 
 export const createAirportSchema = airportSchema;
@@ -78,7 +105,11 @@ const seatSchema = z
   });
 
 export const baseFlightSchema = z.object({
-  flightNumber: z.string().min(1, "Flightnumber is not short").trim().toLowerCase(),
+  flightNumber: z
+    .string()
+    .min(1, "Flightnumber is not short")
+    .transform((val) => val.trim())
+    .transform((val) => val.toUpperCase()),
   airline: objectIdSchema,
   departureAirport: objectIdSchema,
   arrivalAirport: objectIdSchema,
@@ -151,3 +182,22 @@ export interface IFlightResponse extends Omit<IFlight, "airline" | "departureAir
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Flight booking related schema
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Fligth searching schema
+
+export const searchFlightSchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+  airline: z.string().optional(),
+  departureDate: z.string().optional(),
+  returnDate: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  seatClass: z.enum(["economy", "business", "firstClass"]).optional(),
+  isNonStop: z.enum(["true", "false"]).optional(),
+  sort: z.enum(["price", "duration", "departureTime", "arrivalTime"]).optional(),
+  order: z.enum(["asc", "desc"]).default("asc"),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().default(10),
+});

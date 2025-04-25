@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 import { z } from "zod";
 import { IUserResponse } from "../types/user.types.js";
+import { capitalizeFirstLetter } from "../utils/capatilzeLetter.util.js";
 
 // helper function for schema
+
 const isValidObjectId = (value: string) => {
   return mongoose.Types.ObjectId.isValid(value);
 };
@@ -34,20 +36,56 @@ const coordinatesSchema = z
   .partial();
 
 const hotelLocationSchema = z.object({
-  city: z.string().min(3, "City name is required.").max(30, "City name cannot exceed 30 characters").trim(),
-  state: z.string().min(3, "State name is required.").max(30, "State name cannot exceed 30 characters").trim(),
-  country: z.string().min(3, "Country name is required.").max(30, "Country name cannot exceed 30 characters").trim(),
-  address: z.string().max(500, "Address cannot exceed 500 characters").optional(),
+  city: z
+    .string()
+    .min(3, "City name is required.")
+    .max(30, "City name cannot exceed 30 characters")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  state: z
+    .string()
+    .min(3, "State name is required.")
+    .max(30, "State name cannot exceed 30 characters")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  country: z
+    .string()
+    .min(3, "Country name is required.")
+    .max(30, "Country name cannot exceed 30 characters")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  address: z
+    .string()
+    .max(500, "Address cannot exceed 500 characters")
+    .transform((val) => val.trim())
+    .optional(),
   coordinates: coordinatesSchema,
 });
 
 export const hotelSchema = z.object({
-  name: z.string().min(5, "Hotel name is required.").trim(),
-  description: z.string().min(10, "Description must be at least 10 characters long.").max(1000, "Description cannot exceed 1000 characters.").trim(),
+  name: z
+    .string()
+    .min(5, "Hotel name is required.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters long.")
+    .max(1000, "Description cannot exceed 1000 characters.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
   location: hotelLocationSchema,
   images: z.array(urlSchema).min(1, "At least one image is required.").max(6, "Cannot have more than 6 images."),
   rating: z.coerce.number().min(1).max(5).default(1),
-  amenities: z.array(z.string().trim()).min(1, "At least one amenity is required.").max(20, "Cannot have more than 20 amenities."),
+  amenities: z
+    .array(
+      z
+        .string()
+        .transform((val) => val.trim())
+        .transform((val) => val.toUpperCase()),
+    )
+    .min(1, "At least one amenity is required.")
+    .max(20, "Cannot have more than 20 amenities."),
   roomTypes: z.array(objectIdSchema).default([]),
 });
 
@@ -58,13 +96,13 @@ export interface IHotelResponse extends Omit<IHotel, "roomTypes"> {
   roomTypes: (IRoomType & { id: string })[];
 }
 
-//For roomtype create validation
+//For hotel create validation
 export const createHotelSchema = hotelSchema.omit({
   roomTypes: true,
   rating: true,
 });
 
-//For roomtype update validation
+//For hotel  update validation
 export const updateHotelSchema = hotelSchema.partial();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,14 +110,34 @@ export const updateHotelSchema = hotelSchema.partial();
 // Roomtype related schema
 
 export const roomTypeSchema = z.object({
-  name: z.string().min(1, "Room name is required.").trim(),
+  name: z
+    .string()
+    .min(1, "Room name is required.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
   hotel: objectIdSchema,
-  description: z.string().min(10, "Description must be at least 10 characters long.").max(1000, "Description cannot exceed 1000 characters.").trim(),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters long.")
+    .max(1000, "Description cannot exceed 1000 characters.")
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
   capacity: z.coerce.number().min(1, "Capacity must be at least 1."),
   pricePerNight: z.coerce.number().positive("Price must be greater than 0.").max(100000, "Price cannot exceed 100,000 per night."),
-  amenities: z.array(z.string().trim()).min(1, "At least one amenity is required.").max(15, "Cannot have more than 15 amenities."),
+  amenities: z
+    .array(
+      z
+        .string()
+        .transform((val) => val.trim())
+        .transform((val) => val.toUpperCase()),
+    )
+    .min(1, "At least one amenity is required.")
+    .max(15, "Cannot have more than 15 amenities."),
   images: z.array(urlSchema).min(1, "At least one image is required.").max(6, "Cannot have more than 6 images."),
-  bedType: z.string().min(1, "1 Bed Type is required."),
+  bedType: z
+    .string()
+    .transform((val) => val.trim())
+    .transform(capitalizeFirstLetter),
   countInStock: z.coerce.number(),
 });
 
@@ -159,8 +217,10 @@ export interface IHotelBookingResponse {
 //Used for input validation only no DB required.
 export const hotelSearchParamsSchema = z
   .object({
-    city: z.string().max(100, "City name cannot exceed 100 characters").optional(),
-    country: z.string().max(100, "Country name cannot exceed 100 characters").optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
     state: z.string().max(100, "State name cannot exceed 100 characters").optional(),
     checkInDate: z.coerce.date(),
     checkOutDate: z.coerce.date(),

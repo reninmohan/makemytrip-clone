@@ -178,8 +178,8 @@ export const showAllFlight = async (_req: Request, res: Response, next: NextFunc
 
 export const filterAndSearchAllFlights = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const flights = await filterAndSearchAllFlightsService(req);
-    return res.status(200).json(new ApiResponse(true, "Fetch All  Flight details successfully.", flights));
+    await filterAndSearchAllFlightsService(req, res);
+    // return res.status(200).json(new ApiResponse(true, "Fetch All  Flight details successfully.", flights));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);

@@ -1,8 +1,12 @@
-import { Request } from "express";
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Request, Response } from "express";
 import { Airline, Airport, Flight, IAirlineDocument, IAirportDocument, IFlightDocument } from "../db/models/flight.model.js";
 import { RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
-import { IAirline, IAirlineResponse, IAirport, IAirportResponse, IFlight, IFlightResponse } from "../schemas/flight.schema.js";
+import { IAirline, IAirlineResponse, IAirport, IAirportResponse, IFlight, IFlightResponse, searchFlightSchema } from "../schemas/flight.schema.js";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
+import mongoose from "mongoose";
+import { capitalizeFirstLetter } from "../utils/capatilzeLetter.util.js";
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Airline related services
@@ -218,9 +222,14 @@ export const showAllFlightService = async (): Promise<IFlightResponse[]> => {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Flight search related for user
+/*
 
 export const filterAndSearchAllFlightsService = async (req: Request): Promise<{ flights: IFlightResponse[]; totalFlights: number; totalPages: number }> => {
-  const { airline, from, to, nonstop, date, limit = "10" } = req.query;
+  const { airline, from, to, nonstop, date, seatClass, limit = "10" } = req.query;
+
+  if (!from || !to) {
+    throw new HttpError(400, "Both 'from' and 'to' query parameters are required.");
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: any = {};
@@ -246,7 +255,8 @@ export const filterAndSearchAllFlightsService = async (req: Request): Promise<{ 
     totalFlights,
     totalPages,
   };
-  /*
+  */
+/*
 
   const totalFlights = flights.length;
 
@@ -281,4 +291,190 @@ export const filterAndSearchAllFlightsService = async (req: Request): Promise<{ 
     currentPage: Number(page),
   };
   */
+// };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Flight search related service
+
+export const filterAndSearchAllFlightsService = async (req: Request, res: Response) => {
+  try {
+    // Validate query parameters
+    const validationResult = searchFlightSchema.safeParse(req.query);
+
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid search parameters",
+        errors: validationResult.error.errors,
+      });
+    }
+
+    const { from, to, airline, departureDate, minPrice, maxPrice, seatClass, isNonStop, sort, order, page, limit } = validationResult.data;
+
+    // Build filter query
+    const query: any = {};
+
+    // Airport filters (using ObjectId if valid, otherwise try to find by airport code)
+    if (from) {
+      if (mongoose.Types.ObjectId.isValid(from)) {
+        query.departureAirport = from;
+      } else {
+        const airportLookup = await Airport.findOne({ name: capitalizeFirstLetter(from) });
+        if (airportLookup) {
+          query.departureAirport = airportLookup._id;
+        } else {
+          return res.status(404).json({ success: false, message: "Departure airport not found" });
+        }
+      }
+    }
+
+    if (to) {
+      if (mongoose.Types.ObjectId.isValid(to)) {
+        query.arrivalAirport = to;
+      } else {
+        const airportLookup = await Airport.findOne({ name: to.toUpperCase() });
+        if (airportLookup) {
+          query.arrivalAirport = airportLookup._id;
+        } else {
+          return res.status(404).json({ success: false, message: "Arrival airport not found" });
+        }
+      }
+    }
+
+    // Airline filter
+    if (airline) {
+      if (mongoose.Types.ObjectId.isValid(airline)) {
+        query.airline = airline;
+      } else {
+        const airlineLookup = await mongoose.model("Airline").findOne({
+          $or: [{ name: { $regex: airline, $options: "i" } }, { code: airline.toUpperCase() }],
+        });
+        if (airlineLookup) {
+          query.airline = airlineLookup._id;
+        } else {
+          return res.status(404).json({ success: false, message: "Airline not found" });
+        }
+      }
+    }
+
+    // Date filter
+    if (departureDate) {
+      const startDate = new Date(departureDate);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(departureDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      query.departureTime = { $gte: startDate, $lte: endDate };
+    }
+
+    // Price filter - Check if seats are available in the selected class
+    if (seatClass) {
+      query[`availableSeats.${seatClass}`] = { $gt: 0 };
+
+      if (minPrice !== undefined) {
+        query[`price.${seatClass}`] = { $gte: minPrice };
+      }
+
+      if (maxPrice !== undefined) {
+        if (query[`price.${seatClass}`]) {
+          query[`price.${seatClass}`].$lte = maxPrice;
+        } else {
+          query[`price.${seatClass}`] = { $lte: maxPrice };
+        }
+      }
+    } else {
+      // If no class is specified, filter by any class pricing
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        const priceQuery: any = {};
+        if (minPrice !== undefined) {
+          priceQuery.$or = [{ "price.economy": { $gte: minPrice } }, { "price.business": { $gte: minPrice } }, { "price.firstClass": { $gte: minPrice } }];
+        }
+
+        if (maxPrice !== undefined) {
+          priceQuery.$or = [{ "price.economy": { $lte: maxPrice } }, { "price.business": { $lte: maxPrice } }, { "price.firstClass": { $lte: maxPrice } }];
+        }
+
+        Object.assign(query, priceQuery);
+      }
+    }
+
+    // Non-stop filter
+    if (isNonStop) {
+      query.isNonStop = isNonStop === "true";
+    }
+
+    // Build sort query
+    let sortQuery: any = {};
+
+    if (sort) {
+      const sortDirection = order === "asc" ? 1 : -1;
+
+      switch (sort) {
+        case "price":
+          // Sort by the requested class, or lowest price if no class specified
+          if (seatClass) {
+            sortQuery[`price.${seatClass}`] = sortDirection;
+          } else {
+            // Sort by lowest price across all classes
+            sortQuery["price.economy"] = sortDirection;
+          }
+          break;
+        case "duration":
+          sortQuery.duration = sortDirection;
+          break;
+        case "departureTime":
+          sortQuery.departureTime = sortDirection;
+          break;
+        case "arrivalTime":
+          sortQuery.arrivalTime = sortDirection;
+          break;
+        default:
+          // Default sort by departure time
+          sortQuery.departureTime = 1;
+      }
+    } else {
+      // Default sort by departure time
+      sortQuery.departureTime = 1;
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Execute query with population
+    const flights = await Flight.find(query).populate("airline", "name code logo").populate("departureAirport", "name code city country").populate("arrivalAirport", "name code city country").sort(sortQuery).skip(skip).limit(limit);
+
+    // Get total count for pagination
+    const totalFlights = await Flight.countDocuments(query);
+    const totalPages = Math.ceil(totalFlights / limit);
+
+    return res.status(200).json({
+      success: true,
+      currentPage: page,
+      totalPages,
+      totalFlights,
+      resultsPerPage: limit,
+      data: flights.map((flight) => ({
+        id: flight._id,
+        flightNumber: flight.flightNumber,
+        airline: flight.airline,
+        departureAirport: flight.departureAirport,
+        arrivalAirport: flight.arrivalAirport,
+        departureTime: flight.departureTime,
+        arrivalTime: flight.arrivalTime,
+        duration: flight.duration,
+        price: flight.price,
+        availableSeats: flight.availableSeats,
+        isNonStop: flight.isNonStop,
+      })),
+    });
+  } catch (error) {
+    console.error("Search flights error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while searching for flights",
+      error: process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
+    });
+  }
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { Hotel, HotelBooking, IHotelDocument, RoomType } from "../db/models/hotel.model.js";
 import { IHotel, IHotelResponse, IRoomTypeResponse } from "../schemas/hotel.schema.js";
@@ -40,7 +41,6 @@ export const createHotelService = async (req: RequestWithUserAndBody<IHotel>): P
   try {
     await hotel.save();
     return toHotelResponse(hotel);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.cause instanceof MongoServerError && error?.cause?.code === 11000) {
       const errorMessage = Object.keys(error?.cause.keyValue)[0];
@@ -65,7 +65,6 @@ export const updateHotelService = async (req: RequestWithUserAndBody<Partial<IHo
   try {
     await hotel.save();
     return toHotelResponse(hotel);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.cause instanceof MongoServerError && error?.cause?.code === 11000) {
       const errorMessage = Object.keys(error?.cause.keyValue)[0];
@@ -113,12 +112,11 @@ export const fetchSpecficHotelService = async (req: RequestWithUser): Promise<IH
 export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number; totalPages: number; currentPage: number }> => {
   const { city, state, country, amenities, minPrice, maxPrice, capacity, rating, page = "1", limit = "10", checkInDate, checkOutDate } = req.query;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: any = {};
 
-  if (city) query["location.city"] = new RegExp(`^${city}$`, "i");
-  if (state) query["location.state"] = new RegExp(`^${state}$`, "i");
   if (country) query["location.country"] = { $regex: new RegExp(country as string, "i") };
+  if (state) query["location.state"] = { $regex: new RegExp(state as string, "i") };
+  if (city) query["location.city"] = { $regex: new RegExp(city as string, "i") };
 
   if (rating) query.rating = { $gte: Number(rating) };
 
@@ -136,7 +134,6 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
   if (minPrice || maxPrice || capacity) {
     // Filter by price and guest capacity inside roomTypes
     filteredHotels = allHotels.filter((hotel) =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hotel.roomTypes.some((room: any) => {
         const matchesPrice = (minPrice ? room.pricePerNight >= Number(minPrice) : true) && (maxPrice ? room.pricePerNight <= Number(maxPrice) : true);
 
@@ -158,7 +155,6 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
     }).select("roomType");
 
     const unavailableRoomTypeIds = conflictingBookings.map((b) => b.roomType.toString());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filteredHotels = filteredHotels.filter((hotel) => hotel.roomTypes.some((room: any) => !unavailableRoomTypeIds.includes(room._id.toString())));
   }
 
@@ -234,3 +230,167 @@ export const checkHotelAvailabilityService = async (req: RequestWithUser): Promi
 
   return availableRooms;
 };
+
+/*
+
+export const filterAndSearchAllFlightsService2 = async (req: Request, res: Response) => {
+  try {
+    // const validationResult = hotelSearchParamsSchema.safeParse(req.query);
+    // console.log(validationResult);
+    // if (!validationResult.success) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid search parameters",
+    //     errors: validationResult.error.errors,
+    //   });
+    // }
+
+    // Use the validated and transformed data
+    const { city, state, country, amenities, rating, checkInDate, checkOutDate, priceRange, guests, page = "1", limit = "10" } = req.body;
+
+    // Build MongoDB query
+    const query: any = {};
+
+    // Location filters - using exact matches but case insensitive
+    if (city) query["location.city"] = city;
+    if (state) query["location.state"] = state;
+    if (country) query["location.country"] = country;
+
+    // Rating filter
+    if (rating) query.rating = { $gte: Number(rating) };
+
+    // Amenities filter
+    if (amenities && amenities.length > 0) {
+      query.amenities = { $all: amenities };
+    }
+
+    // Pagination setup
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // First, get all hotels that match basic criteria
+    const allHotels = await Hotel.find(query).populate("roomTypes").skip(skip).limit(limitNum);
+
+    // const totalCount = await Hotel.countDocuments(query);
+
+    // For price range and capacity filters, we need to filter after population
+    let filteredHotels = allHotels;
+
+    // Filter by price range and guest capacity if specified
+    if (priceRange?.min || priceRange?.max || guests) {
+      filteredHotels = allHotels.filter((hotel) =>
+        hotel.roomTypes.some((room: any) => {
+          // Price range filter
+          const matchesPrice = (priceRange?.min ? room.pricePerNight >= priceRange.min : true) && (priceRange?.max ? room.pricePerNight <= priceRange.max : true);
+
+          // Guest capacity filter
+          const matchesCapacity = guests ? room.capacity >= guests.adults + (guests.children || 0) : true;
+
+          return matchesPrice && matchesCapacity;
+        }),
+      );
+    }
+
+    // If dates are provided, check for availability
+    if (checkInDate && checkOutDate) {
+      // Find conflicting bookings in the date range
+      const conflictingBookings = await HotelBooking.find({
+        $or: [
+          {
+            // Bookings that overlap with requested dates
+            checkInDate: { $lt: checkOutDate },
+            checkOutDate: { $gt: checkInDate },
+          },
+        ],
+      }).select("roomType hotel");
+
+      // Create lookup maps for quick reference
+      const bookedRooms = new Map();
+      conflictingBookings.forEach((booking) => {
+        const key = `${booking.hotel.toString()}-${booking.roomType.toString()}`;
+        const count = bookedRooms.get(key) || 0;
+        bookedRooms.set(key, count + 1);
+      });
+
+      // Filter out hotels with no available rooms
+      filteredHotels = filteredHotels.filter((hotel) => {
+        return hotel.roomTypes.some((room: any) => {
+          const key = `${(hotel._id as string).toString()}-${room._id.toString()}`;
+          const bookedCount = bookedRooms.get(key) || 0;
+          return bookedCount < room.countInStock; // Still have rooms available
+        });
+      });
+    }
+
+    // Calculate pagination details based on filtered results
+    const totalHotels = filteredHotels.length;
+    const totalPages = Math.ceil(totalHotels / limitNum);
+
+    if (filteredHotels.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No hotels found matching your criteria",
+        data: {
+          hotels: [],
+          pagination: {
+            totalHotels: 0,
+            totalPages: 0,
+            currentPage: pageNum,
+            limit: limitNum,
+          },
+        },
+      });
+    }
+
+    // Format response
+    return res.status(200).json({
+      success: true,
+      message: "Hotels fetched successfully",
+      data: {
+        hotels: filteredHotels.map((hotel) => toHotelResponse1(hotel)),
+        pagination: {
+          totalHotels,
+          totalPages,
+          currentPage: pageNum,
+          limit: limitNum,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Search hotels error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while searching for hotels",
+      error: process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
+    });
+  }
+};
+
+// Helper function for formatting hotel response
+
+const toHotelResponse1 = (hotel: any): IHotelResponse => {
+  return {
+    id: hotel._id.toString(),
+    name: hotel.name,
+    description: hotel.description,
+    location: hotel.location,
+    images: hotel.images,
+    rating: hotel.rating,
+    amenities: hotel.amenities,
+    roomTypes: Array.isArray(hotel.roomTypes)
+      ? hotel.roomTypes.map((room: any) => ({
+          id: room._id.toString(),
+          name: room.name,
+          description: room.description,
+          capacity: room.capacity,
+          pricePerNight: room.pricePerNight,
+          amenities: room.amenities,
+          images: room.images,
+          bedType: room.bedType,
+          countInStock: room.countInStock,
+        }))
+      : [],
+  };
+};
+*/
