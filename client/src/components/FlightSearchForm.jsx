@@ -1,112 +1,115 @@
-"use client";
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon, Search, Plane } from "lucide-react";
+import { format } from "date-fns";
 
-const FlightSearchForm = ({ onSearch }) => {
-  const [from, setFrom] = useState("");
+function FlightSearch({ onSearch }) {
+  const navigate = useNavigate(); // React Router's useHistory hook for navigation
+  const [from, setForm] = useState("");
   const [to, setTo] = useState("");
-  const [departDate, setDepartDate] = useState("");
-  const [returnDate, setReturnDate] = useState("");
-  const [tripType, setTripType] = useState("roundtrip");
-  const [passengers, setPassengers] = useState(1);
+  const [departDate, setDepartDate] = useState(null);
+  // const [returnDate, setReturnDate] = useState(null);
+  const [passengers, setPassengers] = useState("1");
   const [travelClass, setTravelClass] = useState("economy");
 
-  const handleSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
+
+    // Format dates for URL
+    const departDateStr = departDate ? format(departDate, "yyyy-MM-dd") : "";
+    // const returnDateStr = returnDate ? format(returnDate, "yyyy-MM-dd") : "";
     onSearch({
       from,
       to,
       departDate,
-      returnDate: tripType === "roundtrip" ? returnDate : "",
-      tripType,
       passengers,
       travelClass,
     });
+
+    navigate(`/flights/search?origin=${origin}&destination=${to}&departDate=${departDateStr}&travelers=${passengers}&class=${travelClass}`);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="tripType" className="mb-1 block text-sm font-medium text-gray-700">
-            Trip Type
-          </label>
-          <div className="flex space-x-4">
-            <label className="inline-flex items-center">
-              <input type="radio" className="form-radio text-blue-600" name="tripType" value="roundtrip" checked={tripType === "roundtrip"} onChange={() => setTripType("roundtrip")} />
-              <span className="ml-2 text-gray-700">Round Trip</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input type="radio" className="form-radio text-blue-600" name="tripType" value="oneway" checked={tripType === "oneway"} onChange={() => setTripType("oneway")} />
-              <span className="ml-2 text-gray-700">One Way</span>
-            </label>
+    <form onSubmit={handleSearch} className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="origin">From</Label>
+          <div className="relative">
+            <Plane className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input id="origin" placeholder="City or Airport" className="pl-9" value={from} onChange={(e) => setForm(e.target.value)} required />
           </div>
         </div>
-        <div>
-          <label htmlFor="travelClass" className="mb-1 block text-sm font-medium text-gray-700">
-            Travel Class
-          </label>
-          <select id="travelClass" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={travelClass} onChange={(e) => setTravelClass(e.target.value)}>
-            <option value="economy">Economy</option>
-            <option value="premium">Premium Economy</option>
-            <option value="business">Business</option>
-            <option value="first">First Class</option>
-          </select>
-        </div>
-      </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="from" className="mb-1 block text-sm font-medium text-gray-700">
-            From
-          </label>
-          <input type="text" id="from" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="City or Airport" value={from} onChange={(e) => setFrom(e.target.value)} required />
-        </div>
-        <div>
-          <label htmlFor="to" className="mb-1 block text-sm font-medium text-gray-700">
-            To
-          </label>
-          <input type="text" id="to" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="City or Airport" value={to} onChange={(e) => setTo(e.target.value)} required />
-        </div>
-      </div>
-
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="departDate" className="mb-1 block text-sm font-medium text-gray-700">
-            Depart Date
-          </label>
-          <input type="date" id="departDate" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={departDate} onChange={(e) => setDepartDate(e.target.value)} min={new Date().toISOString().split("T")[0]} required />
-        </div>
-        {tripType === "roundtrip" && (
-          <div>
-            <label htmlFor="returnDate" className="mb-1 block text-sm font-medium text-gray-700">
-              Return Date
-            </label>
-            <input type="date" id="returnDate" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} min={departDate || new Date().toISOString().split("T")[0]} required={tripType === "roundtrip"} />
+        <div className="space-y-2">
+          <Label htmlFor="destination">To</Label>
+          <div className="relative">
+            <Plane className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 rotate-90" />
+            <Input id="destination" placeholder="City or Airport" className="pl-9" value={to} onChange={(e) => setTo(e.target.value)} required />
           </div>
-        )}
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="passengers" className="mb-1 block text-sm font-medium text-gray-700">
-            Passengers
-          </label>
-          <select id="passengers" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={passengers} onChange={(e) => setPassengers(Number.parseInt(e.target.value))}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <option key={num} value={num}>
-                {num} {num === 1 ? "Passenger" : "Passengers"}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
-      <button type="submit" className="w-full rounded-md bg-blue-600 px-4 py-3 font-bold text-white transition duration-150 ease-in-out hover:bg-blue-700">
-        Search Flights
-      </button>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="depart-date">Departure Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start text-left font-medium" id="depart-date">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {departDate ? format(departDate, "PPP") : "Select date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar mode="single" selected={departDate} onSelect={setDepartDate} initialFocus disabled={(date) => date < new Date()} />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="travelers">Travelers</Label>
+          <Select value={passengers} onValueChange={setPassengers}>
+            <SelectTrigger id="travelers">
+              <SelectValue placeholder="Number of travelers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 Adult</SelectItem>
+              <SelectItem value="2">2 Adults</SelectItem>
+              <SelectItem value="3">3 Adults</SelectItem>
+              <SelectItem value="4">4 Adults</SelectItem>
+              <SelectItem value="5">5+ Adults</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="class">Class</Label>
+          <Select value={travelClass} onValueChange={setTravelClass}>
+            <SelectTrigger id="class">
+              <SelectValue placeholder="Travel class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="economy">Economy</SelectItem>
+              <SelectItem value="business">Business</SelectItem>
+              <SelectItem value="firstClass">First Class</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button type="submit" className="mb-2 w-full md:self-end" variant="primary">
+          <Search className="mr-2 h-4 w-4" />
+          Search Flights
+        </Button>
+      </div>
     </form>
   );
-};
+}
 
-export default FlightSearchForm;
+export default FlightSearch;

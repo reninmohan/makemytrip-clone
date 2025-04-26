@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock, Percent } from "lucide-react";
 
-const SpecialOffers = () => {
+export function SpecialOffers() {
   const offers = [
     {
       id: 1,
@@ -29,34 +33,40 @@ const SpecialOffers = () => {
   ];
 
   return (
-    <section className="bg-gray-100 py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Special Offers</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-xl text-gray-500 sm:mt-4">Take advantage of our limited-time deals and save on your next trip</p>
+    <section className="bg-muted/50 px-4 py-16 md:py-24">
+      <div className="container mx-auto">
+        <div className="mb-12 text-center">
+          <h2 className="mb-2 text-3xl font-bold tracking-tight">Special Offers</h2>
+          <p className="text-muted-foreground mx-auto max-w-2xl">Exclusive deals and limited-time offers to make your travel dreams come true</p>
         </div>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {offers.map((offer) => (
-            <div key={offer.id} className="overflow-hidden rounded-lg bg-white shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
-              <div className="relative">
-                <img src={offer.image || "/placeholder.svg"} alt={offer.title} className="h-48 w-full object-cover" />
-                <div className="absolute top-0 right-0 rounded-bl-lg bg-red-600 px-3 py-1 font-bold text-white">{offer.discount}</div>
+            <Card key={offer.title} className="group overflow-hidden border-0 p-0 shadow-md transition-shadow duration-300 hover:shadow-lg">
+              <div className="relative h-72 w-full overflow-hidden">
+                <Badge className="bg-primary text-primary-foreground absolute top-3 right-3 z-10">
+                  <Percent className="mr-1 h-3 w-3" />
+                  {offer.discount}
+                </Badge>
+                <img src={offer.image || "/placeholder.svg"} alt={offer.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900">{offer.title}</h3>
-                <p className="mt-2 text-gray-500">{offer.description}</p>
-                <p className="mt-4 text-sm text-gray-600">{offer.validUntil}</p>
-                <Link to="/hotels" className="mt-6 block w-full rounded-md bg-blue-600 px-4 py-2 text-center font-medium text-white transition duration-150 ease-in-out hover:bg-blue-700">
-                  View Offer
-                </Link>
-              </div>
-            </div>
+              <CardContent className="p-6">
+                <h3 className="mb-2 text-xl font-semibold">{offer.title}</h3>
+                <p className="text-muted-foreground mb-4">{offer.description}</p>
+                <div className="text-muted-foreground mb-4 flex items-center text-sm">
+                  <Clock className="mr-1 h-4 w-4" />
+                  {offer.validUntil}
+                </div>
+                <Button asChild className="w-full" variant="primary">
+                  <Link href={offer.link}>View Offer</Link>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
     </section>
   );
-};
+}
 
 export default SpecialOffers;

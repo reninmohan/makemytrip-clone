@@ -1,95 +1,117 @@
-"use client";
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon, Search, MapPin } from "lucide-react";
+import { format } from "date-fns";
 
-const HotelSearchForm = ({ onSearch }) => {
+function HotelSearch() {
+  const navigate = useNavigate();
   const [destination, setDestination] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [rooms, setRooms] = useState(1);
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  const [checkIn, setCheckIn] = useState();
+  const [checkOut, setCheckOut] = useState();
+  const [guests, setGuests] = useState("2");
+  const [rooms, setRooms] = useState("1");
 
-  const handleSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
-    onSearch({
-      destination,
-      checkIn,
-      checkOut,
-      rooms,
-      adults,
-      children,
-    });
+
+    // Format dates for URL
+    const checkInStr = checkIn ? format(checkIn, "yyyy-MM-dd") : "";
+    const checkOutStr = checkOut ? format(checkOut, "yyyy-MM-dd") : "";
+
+    // Navigate to search results with query params
+    navigate(`/hotels/search?destination=${destination}&checkIn=${checkInStr}&checkOut=${checkOutStr}&guests=${guests}&rooms=${rooms}`);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label htmlFor="destination" className="mb-1 block text-sm font-medium text-gray-700">
-          Destination
-        </label>
-        <input type="text" id="destination" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="City, Hotel, or Specific Destination" value={destination} onChange={(e) => setDestination(e.target.value)} required />
-      </div>
+    <form onSubmit={handleSearch} className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="destination">Destination</Label>
+          <div className="relative">
+            <MapPin className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input id="destination" placeholder="Where are you going?" className="pl-9" value={destination} onChange={(e) => setDestination(e.target.value)} required />
+          </div>
+        </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="checkIn" className="mb-1 block text-sm font-medium text-gray-700">
-            Check-in Date
-          </label>
-          <input type="date" id="checkIn" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} min={new Date().toISOString().split("T")[0]} required />
-        </div>
-        <div>
-          <label htmlFor="checkOut" className="mb-1 block text-sm font-medium text-gray-700">
-            Check-out Date
-          </label>
-          <input type="date" id="checkOut" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} min={checkIn || new Date().toISOString().split("T")[0]} required />
-        </div>
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="check-in">Check-in</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal" id="check-in">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {checkIn ? format(checkIn, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus disabled={(date) => date < new Date()} />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div>
-          <label htmlFor="rooms" className="mb-1 block text-sm font-medium text-gray-700">
-            Rooms
-          </label>
-          <select id="rooms" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={rooms} onChange={(e) => setRooms(Number.parseInt(e.target.value))}>
-            {[1, 2, 3, 4, 5].map((num) => (
-              <option key={num} value={num}>
-                {num} {num === 1 ? "Room" : "Rooms"}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="adults" className="mb-1 block text-sm font-medium text-gray-700">
-            Adults
-          </label>
-          <select id="adults" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={adults} onChange={(e) => setAdults(Number.parseInt(e.target.value))}>
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <option key={num} value={num}>
-                {num} {num === 1 ? "Adult" : "Adults"}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="children" className="mb-1 block text-sm font-medium text-gray-700">
-            Children
-          </label>
-          <select id="children" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" value={children} onChange={(e) => setChildren(Number.parseInt(e.target.value))}>
-            {[0, 1, 2, 3, 4].map((num) => (
-              <option key={num} value={num}>
-                {num} {num === 1 ? "Child" : "Children"}
-              </option>
-            ))}
-          </select>
+          <div className="space-y-2">
+            <Label htmlFor="check-out">Check-out</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal" id="check-out">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {checkOut ? format(checkOut, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus disabled={(date) => date < new Date() || (checkIn ? date <= checkIn : false)} />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
 
-      <button type="submit" className="w-full rounded-md bg-blue-600 px-4 py-3 font-bold text-white transition duration-150 ease-in-out hover:bg-blue-700">
-        Search Hotels
-      </button>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="guests">Guests</Label>
+          <Select value={guests} onValueChange={setGuests}>
+            <SelectTrigger id="guests">
+              <SelectValue placeholder="Number of guests" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 Guest</SelectItem>
+              <SelectItem value="2">2 Guests</SelectItem>
+              <SelectItem value="3">3 Guests</SelectItem>
+              <SelectItem value="4">4 Guests</SelectItem>
+              <SelectItem value="5">5 Guests</SelectItem>
+              <SelectItem value="6">6+ Guests</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="rooms">Rooms</Label>
+          <Select value={rooms} onValueChange={setRooms}>
+            <SelectTrigger id="rooms">
+              <SelectValue placeholder="Number of rooms" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 Room</SelectItem>
+              <SelectItem value="2">2 Rooms</SelectItem>
+              <SelectItem value="3">3 Rooms</SelectItem>
+              <SelectItem value="4">4+ Rooms</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button type="submit" className="w-full md:self-end" variant="primary">
+          <Search className="mr-2 h-4 w-4" />
+          Search Hotels
+        </Button>
+      </div>
     </form>
   );
-};
+}
 
-export default HotelSearchForm;
+export default HotelSearch;

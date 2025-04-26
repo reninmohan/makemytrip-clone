@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const Navbar = () => {
@@ -15,7 +15,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/90 sticky top-0 z-50 w-full backdrop-blur">
+    <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/90 backdrop-blu sticky top-0 z-50 w-full shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex items-center">
@@ -23,26 +23,27 @@ const Navbar = () => {
               <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-2xl font-bold text-transparent">MakeMyTrip</span>
             </Link>
             <div className="hidden md:ml-6 md:flex md:space-x-4">
-              <Link to="/" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white">
+              <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
+                {/* <NavLink to="/" className="nav-link rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white"> */}
                 Home
-              </Link>
-              <Link to="/flights" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white">
+              </NavLink>
+              <NavLink to="/flights" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
                 Flights
-              </Link>
-              <Link to="/hotels" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white">
+              </NavLink>
+              <NavLink to="/hotels" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
                 Hotels
-              </Link>
+              </NavLink>
               {currentUser && (
-                <Link to="/my-bookings" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white">
+                <NavLink to="/my-bookings" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
                   My Bookings
-                </Link>
+                </NavLink>
               )}
             </div>
           </div>
           <div className="hidden items-center md:flex">
             {currentUser ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm">Hello, {currentUser?.fullName}</span>
+                <span className="text-sm">Hello, {currentUser?.name}</span>
                 <button onClick={handleLogout} className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium transition-colors hover:bg-red-600">
                   Logout
                 </button>
@@ -52,7 +53,7 @@ const Navbar = () => {
                 <Link to="/login" className="rounded-md bg-white px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-gray-200">
                   Sign In
                 </Link>
-                <Link to="/signup" className="rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600">
+                <Link to="/signup" className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700">
                   Sign Up
                 </Link>
               </div>
