@@ -78,6 +78,16 @@ export const showAllAirlinesService = async (): Promise<IAirlineResponse[]> => {
   return airline.map((airline) => toAirlineResponse(airline));
 };
 
+export const getAirlinesService = async (req: Request): Promise<IAirlineResponse> => {
+  const { airlineId } = req.params;
+  const airline = await Airline.findById(airlineId);
+
+  if (!airline) {
+    throw new HttpError(404, "Airline not found in db.");
+  }
+  return toAirlineResponse(airline);
+};
+
 //////////////////////////////////////////////////////////////////////////////////
 // Airport related controller
 

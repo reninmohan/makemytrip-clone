@@ -11,7 +11,7 @@ import { userLoginSchema } from "../schemas/user.schema.js";
 import { deleteRoomType } from "../controllers/roomtype.controller.js";
 import { showAllHotelBooking } from "../controllers/booking.controller.js";
 import { createAirlineSchema, createAirportSchema, createFlightSchema, updateAirlineSchema, updateAirportSchema, updateFlightSchema } from "../schemas/flight.schema.js";
-import { createAirline, createAirport, createFlight, deleteAirline, deleteAirport, deleteFlight, showAllAirlines, showAllFlight, updateAirline, updateAirport, updateFlight } from "../controllers/flight.controller.js";
+import { createAirline, createAirport, createFlight, deleteAirline, deleteAirport, deleteFlight, getAirlines, showAllAirlines, showAllFlight, updateAirline, updateAirport, updateFlight } from "../controllers/flight.controller.js";
 
 const adminRouter = express.Router();
 
@@ -74,6 +74,9 @@ adminRouter.delete("/airlines/:airlineId", authAdmin, deleteAirline);
 
 //Retrieves a list of all airlines
 adminRouter.get("/airlines", authAdmin, showAllAirlines);
+
+//Retrieves a list of all airlines
+adminRouter.get("/airlines/:airlineId", authAdmin, getAirlines);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

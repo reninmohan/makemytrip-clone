@@ -21,7 +21,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      console.log(email, password);
       await login(email, password);
       // If login is successful, navigate to the previous page or home
       navigate("/", { replace: true });

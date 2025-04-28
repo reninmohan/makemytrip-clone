@@ -7,7 +7,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
 import { hotelSchema } from "./CreateHotelZodSchemaFrontend";
 import api from "@/axiosConfig";
 import toast from "react-hot-toast";

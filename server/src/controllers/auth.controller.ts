@@ -67,10 +67,8 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
       httpOnly: true,
       secure: true,
       sameSite: "strict",
-      maxAge: 0, // Immediately expire the cookie
+      maxAge: 0,
     });
-    console.log("TODO");
-    console.log("In frontend write logic to manually clear the localstorage");
     return res.status(200).json(new ApiResponse(true, "Successfully logged out", "Cleared cookie"));
   } catch (error) {
     if (error instanceof HttpError) {

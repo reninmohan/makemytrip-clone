@@ -23,7 +23,6 @@ export const toRoomTypeResponse = (roomType: IRoomTypeDocument | any): IRoomType
 
 export const createRoomTypeService = async (req: RequestWithUserAndBody<IRoomType>): Promise<IRoomTypeResponse> => {
   if (req.body.images.length === 0 || !Array.isArray(req.body.images)) {
-    console.log("secondary check for image triggered.");
     throw new HttpError(401, "Images url are empty.At least one image is required.");
   }
   const roomType = new RoomType({ ...req.body });

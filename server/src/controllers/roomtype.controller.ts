@@ -51,7 +51,7 @@ export const getAllRoomTypes = async (_req: Request, res: Response, next: NextFu
     const allRoomTypes = await getAllRoomTypesService();
     return res.status(200).json(new ApiResponse(true, "All Roomtype details fetched successfully.", allRoomTypes));
   } catch (error) {
-    console.log(error);
+    console.error(error);
     if (error instanceof HttpError) {
       return next(error);
     }

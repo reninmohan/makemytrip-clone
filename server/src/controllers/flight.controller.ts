@@ -11,6 +11,7 @@ import {
   deleteAirportService,
   deleteFlightService,
   filterAndSearchAllFlightsService,
+  getAirlinesService,
   showAllAirlinesService,
   showAllAirportService,
   showAllFlightService,
@@ -67,6 +68,18 @@ export const showAllAirlines = async (_req: Request, res: Response, next: NextFu
       return next(error);
     }
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch details of all  airlines."));
+  }
+};
+
+export const getAirlines = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const airline = await getAirlinesService(req);
+    return res.status(200).json(new ApiResponse(true, "Fetched details of  airline successfully.", airline));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch details of   airlines."));
   }
 };
 
