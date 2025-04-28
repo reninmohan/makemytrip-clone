@@ -12,9 +12,11 @@ import {
   deleteFlightService,
   filterAndSearchAllFlightsService,
   getAirlinesService,
+  getAirportService,
+  getAllAirportService,
+  getAllFlightService,
+  getFlightService,
   showAllAirlinesService,
-  showAllAirportService,
-  showAllFlightService,
   updateAirlineService,
   updateAirportService,
   updateFlightService,
@@ -122,9 +124,21 @@ export const deleteAirport = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const showAllAirport = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAirport = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const airport = await showAllAirportService();
+    const airport = await getAirportService(req);
+    return res.status(200).json(new ApiResponse(true, "Fetched details of  airport  successfully.", airport));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch details of  airport."));
+  }
+};
+
+export const getAllAirport = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const airport = await getAllAirportService();
     return res.status(200).json(new ApiResponse(true, "Fetched details of all airport  successfully.", airport));
   } catch (error) {
     if (error instanceof HttpError) {
@@ -173,9 +187,22 @@ export const deleteFlight = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const showAllFlight = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAllFlights = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const flight = await showAllFlightService();
+    const flight = await getAllFlightService();
+    return res.status(200).json(new ApiResponse(true, "Fetched details of all flight  successfully.", flight));
+  } catch (error) {
+    console.log(error);
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch details of all flight."));
+  }
+};
+
+export const getFlight = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const flight = await getFlightService(req);
     return res.status(200).json(new ApiResponse(true, "Fetched details of all flight  successfully.", flight));
   } catch (error) {
     console.log(error);

@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, KeyRound, TicketCheck, Hotel, Bed } from "lucide-react";
+import { User, KeyRound, TicketCheck, Hotel, Bed, Building2 } from "lucide-react";
 import { ProfileSection } from "@/components/ProfileUpdateSection";
 import { PasswordSection } from "@/components/PasswordUpdateSection";
 import { AdminAllBookingsSection } from "@/components/admin/AdminAllBookingSection";
 import { HotelManagement } from "@/components/admin/hotel/HotelManagement";
 import RoomTypeManagement from "@/components/admin/roomtype/RoomTypeManagement";
 import { AirlineManagement } from "../components/admin/airline/AirlineManagement";
+import { AirportManagement } from "../components/admin/airport/AirportManagement";
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth();
@@ -54,6 +55,10 @@ export default function AdminDashboard() {
                     <KeyRound className="mr-2 h-4 w-4" />
                     Airline Management
                   </Button>
+                  <Button variant={activeTab === "airports" ? "secondary" : "ghost"} className="justify-start" onClick={() => setActiveTab("airports")}>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Airports Management
+                  </Button>
                   <Button variant={activeTab === "allbooking" ? "secondary" : "ghost"} className="justify-start" onClick={() => setActiveTab("allbooking")}>
                     <TicketCheck className="mr-2 h-4 w-4" />
                     All Bookings
@@ -80,6 +85,7 @@ export default function AdminDashboard() {
                   <TabsTrigger value="profile">Profile</TabsTrigger>
                   <TabsTrigger value="password">Password</TabsTrigger>
                   <TabsTrigger value="airline">Airline</TabsTrigger>
+                  <TabsTrigger value="airports">Airports</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -91,6 +97,7 @@ export default function AdminDashboard() {
                 {activeTab === "hotels" && <HotelManagement />}
                 {activeTab === "roomtypes" && <RoomTypeManagement />}
                 {activeTab === "airline" && <AirlineManagement />}
+                {activeTab === "airports" && <AirportManagement />}
               </div>
             </div>
           </div>

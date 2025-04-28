@@ -73,7 +73,7 @@ export const showAllAirlinesService = async (): Promise<IAirlineResponse[]> => {
   const airline = await Airline.find({});
 
   if (airline.length === 0) {
-    throw new HttpError(404, "Failed to fetch all airline details from db.");
+    return [];
   }
   return airline.map((airline) => toAirlineResponse(airline));
 };
@@ -147,13 +147,24 @@ export const deleteAirportService = async (req: Request): Promise<IAirportRespon
   return toAirportResponse(airport);
 };
 
-export const showAllAirportService = async (): Promise<IAirportResponse[]> => {
+export const getAllAirportService = async (): Promise<IAirportResponse[]> => {
   const airports = await Airport.find({});
 
   if (airports.length === 0) {
-    throw new HttpError(404, "Failed to fetch all airport details from db.");
+    return [];
   }
   return airports.map((airport) => toAirportResponse(airport));
+};
+
+export const getAirportService = async (req: Request): Promise<IAirportResponse> => {
+  const { airportId } = req.params;
+
+  const airport = await Airport.findById(airportId);
+
+  if (!airport) {
+    throw new HttpError(404, "Mentioned airport detail not found in db.");
+  }
+  return toAirportResponse(airport);
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -221,15 +232,25 @@ export const deleteFlightService = async (req: Request): Promise<IFlightResponse
   return toFlightResponse(flight);
 };
 
-export const showAllFlightService = async (): Promise<IFlightResponse[]> => {
-  const flights = await Flight.find({}).populate(["airline", "departureAirport", "arrivalAirport"]);
+export const getAllFlightService = async (): Promise<IFlightResponse[]> => {
+  const flights = await Flight.find({});
 
   if (flights.length === 0) {
-    throw new HttpError(404, "Failed to fetch all flight details from db.");
+    return [];
   }
   return flights.map((flight) => toFlightResponse(flight));
 };
 
+export const getFlightService = async (req: Request): Promise<IFlightResponse> => {
+  const { flightId } = req.params;
+  const flight = await Flight.findById(flightId);
+
+  if (!flight) {
+    throw new HttpError(404, "Mentioned flightId doesn't exist in db or already deleted.");
+  }
+
+  return toFlightResponse(flight);
+};
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Flight search related for user
 /*

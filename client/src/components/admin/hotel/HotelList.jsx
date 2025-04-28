@@ -67,7 +67,7 @@ export default function HotelList({ onEditHotel }) {
   if (error) {
     return (
       <Card className="border-destructive">
-        <CardContent className="pt-6">
+        <CardContent className="py-6">
           <div className="text-destructive text-center">
             <p>{error}</p>
             <Button variant="outline" className="my-4" onClick={fetchHotels}>
@@ -82,7 +82,7 @@ export default function HotelList({ onEditHotel }) {
   if (hotels.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="py-6">
           <div className="text-muted-foreground text-center">
             <p>No hotels found. Create your first hotel to get started.</p>
           </div>

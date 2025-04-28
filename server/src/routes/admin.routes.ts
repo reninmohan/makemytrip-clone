@@ -11,7 +11,7 @@ import { userLoginSchema } from "../schemas/user.schema.js";
 import { deleteRoomType } from "../controllers/roomtype.controller.js";
 import { showAllHotelBooking } from "../controllers/booking.controller.js";
 import { createAirlineSchema, createAirportSchema, createFlightSchema, updateAirlineSchema, updateAirportSchema, updateFlightSchema } from "../schemas/flight.schema.js";
-import { createAirline, createAirport, createFlight, deleteAirline, deleteAirport, deleteFlight, getAirlines, showAllAirlines, showAllFlight, updateAirline, updateAirport, updateFlight } from "../controllers/flight.controller.js";
+import { createAirline, createAirport, createFlight, deleteAirline, deleteAirport, deleteFlight, getAirlines, getAirport, getAllAirport, getAllFlights, getFlight, showAllAirlines, updateAirline, updateAirport, updateFlight } from "../controllers/flight.controller.js";
 
 const adminRouter = express.Router();
 
@@ -75,7 +75,7 @@ adminRouter.delete("/airlines/:airlineId", authAdmin, deleteAirline);
 //Retrieves a list of all airlines
 adminRouter.get("/airlines", authAdmin, showAllAirlines);
 
-//Retrieves a list of all airlines
+//Retrieves a specify  airlines
 adminRouter.get("/airlines/:airlineId", authAdmin, getAirlines);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,10 @@ adminRouter.put("/airports/:airportId", authAdmin, validateInput(updateAirportSc
 adminRouter.delete("/airports/:airportId", authAdmin, deleteAirport);
 
 //Retrieves a list of all airport
-adminRouter.get("/airports", authAdmin, showAllFlight);
+adminRouter.get("/airports", authAdmin, getAllAirport);
+
+//Retrieves a specific airport
+adminRouter.get("/airports/:airportId", authAdmin, getAirport);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -104,6 +107,9 @@ adminRouter.put("/flights/:flightId", authAdmin, validateInput(updateFlightSchem
 adminRouter.delete("/flights/:flightId", authAdmin, deleteFlight);
 
 //Retrieves a list of all flight
-adminRouter.get("/flights", authAdmin, showAllFlight);
+adminRouter.get("/flights", authAdmin, getAllFlights);
+
+//Retrieves details of specific flight
+adminRouter.get("/flights/:flightId", authAdmin, getFlight);
 
 export default adminRouter;

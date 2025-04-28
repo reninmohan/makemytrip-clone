@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -14,7 +14,7 @@ export default function RoomTypeList({ onEditRoomType }) {
   const [deleteRoomTypeId, setDeleteRoomTypeId] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const fetchRoomTypes = useCallback(async () => {
+  const fetchRoomTypes = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -27,11 +27,10 @@ export default function RoomTypeList({ onEditRoomType }) {
     } finally {
       setLoading(false);
     }
-  }, []);
-
+  };
   useEffect(() => {
     fetchRoomTypes();
-  }, [fetchRoomTypes]);
+  }, []);
 
   const handleDeleteClick = (roomTypeId) => {
     setDeleteRoomTypeId(roomTypeId);
@@ -65,7 +64,7 @@ export default function RoomTypeList({ onEditRoomType }) {
   if (error) {
     return (
       <Card className="border-destructive">
-        <CardContent className="pt-6">
+        <CardContent className="py-6">
           <div className="text-destructive text-center">
             <p>{error}</p>
             <Button variant="outline" className="mt-4" onClick={fetchRoomTypes}>
@@ -80,7 +79,7 @@ export default function RoomTypeList({ onEditRoomType }) {
   if (roomTypes.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="py-6">
           <div className="text-muted-foreground text-center">
             <p>No room types found. Create your first room type to get started.</p>
           </div>
