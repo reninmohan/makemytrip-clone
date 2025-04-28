@@ -1,17 +1,24 @@
-"use client";
-
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "./ui/button";
 
 const Navbar = () => {
-  const { currentUser, logout } = useContext(AuthContext);
+  const { currentUser, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -34,19 +41,21 @@ const Navbar = () => {
                 Hotels
               </NavLink>
               {currentUser && (
-                <NavLink to="/my-bookings" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
-                  My Bookings
-                </NavLink>
+                <>
+                  <NavLink to="/profile" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
+                    My Profile
+                  </NavLink>
+                </>
               )}
             </div>
           </div>
           <div className="hidden items-center md:flex">
             {currentUser ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm">Hello, {currentUser?.name}</span>
-                <button onClick={handleLogout} className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium transition-colors hover:bg-red-600">
-                  Logout
-                </button>
+                <span className="text-sm">Hello, {currentUser?.fullName.split(" ")?.[0] || currentUser?.fullName}</span>
+                <Button onClick={handleLogout} variant="destructive" className="transition-colors hover:bg-red-700" disabled={isLoggingOut}>
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </Button>
               </div>
             ) : (
               <div className="flex space-x-4">
@@ -83,15 +92,14 @@ const Navbar = () => {
               Hotels
             </Link>
             {currentUser && (
-              <Link to="/my-bookings" className="block rounded-md px-3 py-2 text-base font-medium hover:bg-blue-700" onClick={() => setIsMenuOpen(false)}>
-                My Bookings
+              <Link to="/profile" className="block rounded-md px-3 py-2 text-base font-medium hover:bg-blue-700" onClick={() => setIsMenuOpen(false)}>
+                My Profile
               </Link>
             )}
           </div>
-          <div className="pt-1 pb-5">
+          <div className="pb-5">
             {currentUser ? (
               <div className="space-y-1 px-2">
-                <div className="px-3 py-2 text-base font-medium">Hello, {currentUser.name}</div>
                 <button
                   onClick={() => {
                     handleLogout();

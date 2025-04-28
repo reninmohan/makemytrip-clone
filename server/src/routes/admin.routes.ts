@@ -1,6 +1,6 @@
 import express, { RequestHandler } from "express";
-import { createHotel, deleteHotel, fetchSpecificHotel, updateHotel } from "../controllers/hotel.controller.js";
-import { createRoomType, getRoomTypeById, updateRoomType } from "../controllers/roomtype.controller.js";
+import { createHotel, deleteHotel, fetchSpecificHotel, showAllHotelDetails, updateHotel } from "../controllers/hotel.controller.js";
+import { createRoomType, getAllRoomTypes, getRoomTypeById, updateRoomType } from "../controllers/roomtype.controller.js";
 import { loginByAdmin } from "../controllers/admin.controller.js";
 import { authAdmin } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -33,6 +33,9 @@ adminRouter.delete("/hotels/:hotelId", authAdmin, deleteHotel);
 //Search details for a particular hotel
 adminRouter.get("/hotels/:hotelId", authAdmin, fetchSpecificHotel);
 
+//fetach all hotel details
+adminRouter.get("/hotels", authAdmin, showAllHotelDetails);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Protected routes for admin for roomtype  CRUD operation
 
@@ -47,6 +50,9 @@ adminRouter.delete("/roomtypes/:roomid", authAdmin, deleteRoomType);
 
 //Fetch details of specific roomtype
 adminRouter.get("/roomtypes/:roomid", authAdmin, getRoomTypeById);
+
+//fetach all roomtypes details
+adminRouter.get("/roomtypes", authAdmin, getAllRoomTypes);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -59,7 +59,7 @@ const hotelLocationSchema = z.object({
     .max(500, "Address cannot exceed 500 characters")
     .transform((val) => val.trim())
     .optional(),
-  coordinates: coordinatesSchema,
+  coordinates: coordinatesSchema.optional(),
 });
 
 export const hotelSchema = z.object({
@@ -94,6 +94,8 @@ export type IHotel = z.infer<typeof hotelSchema>;
 export interface IHotelResponse extends Omit<IHotel, "roomTypes"> {
   id: string;
   roomTypes: (IRoomType & { id: string })[];
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 //For hotel create validation

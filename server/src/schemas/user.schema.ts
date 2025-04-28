@@ -17,7 +17,7 @@ export const userRegistrationSchema = z.object({
     .transform((val) => val.toLowerCase()),
   password: z.string().min(8, "Password must be atleast 8 characters"),
   role: z.enum(["user", "admin"]).default("user"),
-  phoneNumber: z.string().min(10, "Phone number must atleast be 10 digits").regex(/^\d+$/, { message: "Phone number must contain digits only" }),
+  phoneNumber: z.string().min(10, "Phone number must atleast be 10 digits").max(12, "Phone number cannot be more than 12 digit").regex(/^\d+$/, { message: "Phone number must contain digits only" }),
 });
 
 export const userLoginSchema = userRegistrationSchema.pick({ email: true, password: true });

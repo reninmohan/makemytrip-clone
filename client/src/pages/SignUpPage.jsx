@@ -3,8 +3,54 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import api from "../axiosConfig";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function SignUpPage() {
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error("Passwords must be at aleast 8 character");
+      return;
+    }
+
+    try {
+      await api.post("/api/auth/register", {
+        fullName,
+        phoneNumber,
+        email,
+        password,
+      });
+
+      toast.success("Account created successfully!");
+
+      // clear form
+      setFullName("");
+      setPhoneNumber("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      navigate("/login");
+    } catch (error) {
+      console.error(error.response);
+      toast.error(error.response.data?.message || "something went wrong");
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-16">
       <div className="container mx-auto max-w-md flex-1">
@@ -14,28 +60,26 @@ export default function SignUpPage() {
             <p className="text-muted-foreground">Enter your information to create an account</p>
           </div>
 
-          <form className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" placeholder="John" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" placeholder="Doe" required />
-              </div>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="full-name">Full Name</Label>
+              <Input id="full-name" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone-number">Phone Number</Label>
+              <Input id="phone-number" type="tel" placeholder="1234567890" required value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required />
+              <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input id="confirm-password" type="password" required />
+              <Input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
             <Button type="submit" className="w-full" variant="primary">
               Create Account

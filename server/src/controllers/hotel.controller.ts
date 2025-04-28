@@ -1,7 +1,7 @@
 import { Response, NextFunction, Request } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, checkHotelAvailabilityService, fetchAllRoomsByHotelService, filterAndSearchAllHotelsService } from "../services/hotel.services.js";
+import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, checkHotelAvailabilityService, fetchAllRoomsByHotelService, filterAndSearchAllHotelsService, showAllHotelDetailsService } from "../services/hotel.services.js";
 import { IHotel } from "../schemas/hotel.schema.js";
 import { RequestWithUser, RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
 
@@ -53,6 +53,18 @@ export const fetchSpecificHotel = async (req: RequestWithUser, res: Response, ne
       return next(error);
     }
     return next(new HttpError(500, "Unexcepted Error: Failed to fetch hotel details.", error));
+  }
+};
+
+export const showAllHotelDetails = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  try {
+    const hotel = await showAllHotelDetailsService();
+    return res.status(200).json(new ApiResponse(true, "All Hotel details fetched successfully.", hotel));
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return next(error);
+    }
+    return next(new HttpError(500, "Unexcepted Error: Failed to fetch all hotel details.", error));
   }
 };
 

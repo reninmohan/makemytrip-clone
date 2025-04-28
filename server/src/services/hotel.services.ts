@@ -11,7 +11,7 @@ import { Request } from "express";
 
 export const toHotelResponse = (hotel: IHotelDocument): IHotelResponse => {
   return {
-    id: hotel?.id.toString(),
+    id: hotel?._id.toString(),
     name: hotel?.name,
     description: hotel?.description,
     location: {
@@ -20,14 +20,16 @@ export const toHotelResponse = (hotel: IHotelDocument): IHotelResponse => {
       country: hotel?.location?.country,
       address: hotel?.location?.address,
       coordinates: {
-        latitude: hotel?.location?.coordinates.latitude,
-        longitude: hotel?.location?.coordinates.longitude,
+        latitude: hotel?.location?.coordinates?.latitude,
+        longitude: hotel?.location?.coordinates?.longitude,
       },
     },
     images: hotel?.images,
     rating: hotel?.rating,
     amenities: hotel?.amenities,
     roomTypes: hotel?.roomTypes?.map((roomType) => toRoomTypeResponse(roomType)),
+    updatedAt: hotel?.updatedAt,
+    createdAt: hotel?.createdAt,
   };
 };
 
@@ -86,6 +88,31 @@ export const deleteHotelService = async (req: RequestWithUser): Promise<IHotelRe
     throw new HttpError(404, "Hotel not found or already deleted.");
   }
   return toHotelResponse(deletedHotel);
+};
+
+export const showAllHotelDetailsService = async () => {
+  const toAllHotelResponse = (hotel: IHotelDocument) => {
+    return {
+      id: hotel?.id.toString(),
+      name: hotel?.name,
+      location: {
+        city: hotel?.location?.city,
+        state: hotel?.location?.state,
+        country: hotel?.location?.country,
+        address: hotel?.location?.address,
+        coordinates: {
+          latitude: hotel?.location?.coordinates?.latitude,
+          longitude: hotel?.location?.coordinates?.longitude,
+        },
+      },
+      rating: hotel?.rating,
+      createdAt: hotel?.createdAt,
+    };
+  };
+
+  const allHotelsDetails = await Hotel.find({});
+
+  return allHotelsDetails.map((booking) => toAllHotelResponse(booking));
 };
 
 ////////////////////////////////////////////////////////////////////////

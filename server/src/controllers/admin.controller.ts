@@ -8,15 +8,11 @@ export const loginByAdmin = async (req: Request, res: Response, next: NextFuncti
   try {
     const { refreshToken, ...response } = await loginByAdminService(req.body);
     setRefreshToken(res, refreshToken);
-    return res.status(200).json(
-      new ApiResponse(true, "Successfully login by admin", {
-        response,
-      }),
-    );
+    return res.status(200).json(new ApiResponse(true, "Successfully login by admin", response));
   } catch (error) {
     if (error instanceof HttpError) {
       return next(error);
     }
-    return next(new HttpError(401, "Unexcepted Error: Failed to login as admin."));
+    return next(new HttpError(400, "Unexcepted Error: Failed to login as admin."));
   }
 };

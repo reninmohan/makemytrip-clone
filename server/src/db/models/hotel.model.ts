@@ -6,112 +6,128 @@ import { IUserDocument } from "./user.model.js";
 
 export interface IRoomTypeDocument extends Omit<IRoomType, "hotel">, Document {
   hotel: mongoose.Schema.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+  _id: mongoose.Schema.Types.ObjectId;
 }
 
-const RoomTypeMongooseSchema = new mongoose.Schema<IRoomTypeDocument>({
-  hotel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Hotel",
-    required: [true, "A roomtype should be associated with a hotel"],
+const RoomTypeMongooseSchema = new mongoose.Schema<IRoomTypeDocument>(
+  {
+    hotel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hotel",
+      required: [true, "A roomtype should be associated with a hotel"],
+    },
+    name: {
+      type: String,
+      required: [true, "Room name is required"],
+    },
+    description: {
+      type: String,
+      required: [true, "Please provided some description"],
+    },
+    capacity: {
+      type: Number,
+      required: [true, "Capacity should be at atleast 1"],
+    },
+    pricePerNight: {
+      type: Number,
+      required: [true, "Room must have price per night"],
+      min: [1, "Price must be greater than 0"],
+      max: [100000, "Price cannot exceed more than 1 lakh per night"],
+    },
+    amenities: {
+      type: [String],
+      required: [true, "Minimium 1 amenities should be mentioned"],
+    },
+    images: {
+      type: [String],
+      required: [true, "At least one image is required"],
+    },
+    bedType: { type: String, required: true },
+    countInStock: { type: Number, required: true, min: 1 },
   },
-  name: {
-    type: String,
-    required: [true, "Room name is required"],
+  {
+    timestamps: true,
   },
-  description: {
-    type: String,
-    required: [true, "Please provided some description"],
-  },
-  capacity: {
-    type: Number,
-    required: [true, "Capacity should be at atleast 1"],
-  },
-  pricePerNight: {
-    type: Number,
-    required: [true, "Room must have price per night"],
-    min: [1, "Price must be greater than 0"],
-    max: [100000, "Price cannot exceed more than 1 lakh per night"],
-  },
-  amenities: {
-    type: [String],
-    required: [true, "Minimium 1 amenities should be mentioned"],
-  },
-  images: {
-    type: [String],
-    required: [true, "At least one image is required"],
-  },
-  bedType: { type: String, required: true },
-  countInStock: { type: Number, required: true, min: 1 },
-});
+);
 
 const RoomType = mongoose.model<IRoomTypeDocument>("RoomType", RoomTypeMongooseSchema);
 
 export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
   roomTypes: IRoomTypeDocument[];
+  createdAt: Date;
+  updatedAt: Date;
+  _id: mongoose.Schema.Types.ObjectId;
 }
 
 // export interface IHotelDocument extends Omit<IHotel, "roomTypes">, Document {
 //   roomTypes: mongoose.Schema.Types.ObjectId;
 // }
 
-const HotelMongooseSchema = new mongoose.Schema<IHotelDocument>({
-  name: {
-    type: String,
-    required: [true, "Hotel name is required"],
-    trim: true,
-    unique: [true, "Hotel name should be unique"],
-  },
-  description: {
-    type: String,
-    required: [true, "Hotel description is required"],
-    trim: true,
-  },
-  location: {
-    city: {
+const HotelMongooseSchema = new mongoose.Schema<IHotelDocument>(
+  {
+    name: {
       type: String,
-      required: [true, "Cityname is required"],
+      required: [true, "Hotel name is required"],
+      trim: true,
+      unique: [true, "Hotel name should be unique"],
+    },
+    description: {
+      type: String,
+      required: [true, "Hotel description is required"],
       trim: true,
     },
-    state: {
-      type: String,
-      required: [true, "Statename is required"],
-      trim: true,
+    location: {
+      city: {
+        type: String,
+        required: [true, "Cityname is required"],
+        trim: true,
+      },
+      state: {
+        type: String,
+        required: [true, "Statename is required"],
+        trim: true,
+      },
+      country: {
+        type: String,
+        required: [true, "Countryname is required"],
+        trim: true,
+      },
+      address: {
+        type: String,
+        trim: true,
+      },
+      coordinates: {
+        latitude: Number,
+        longitude: Number,
+      },
     },
-    country: {
-      type: String,
-      required: [true, "Countryname is required"],
-      trim: true,
+    images: {
+      type: [String],
+      required: [true, "At least one image is required"],
     },
-    address: {
-      type: String,
-      trim: true,
+    rating: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 5,
     },
-    coordinates: {
-      latitude: Number,
-      longitude: Number,
+    amenities: {
+      type: [String],
+      required: [true, "Minimium 1 amenities should be mentioned"],
     },
+    roomTypes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RoomType",
+      },
+    ],
   },
-  images: {
-    type: [String],
-    required: [true, "At least one image is required"],
+  {
+    timestamps: true,
   },
-  rating: {
-    type: Number,
-    default: 1,
-    min: 1,
-    max: 5,
-  },
-  amenities: {
-    type: [String],
-    required: [true, "Minimium 1 amenities should be mentioned"],
-  },
-  roomTypes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "RoomType",
-    },
-  ],
-});
+);
 
 const Hotel = mongoose.model<IHotelDocument>("Hotel", HotelMongooseSchema);
 

@@ -67,12 +67,12 @@ export const createTokenService = async (loginData: IUserLogin): Promise<ICreate
   });
 
   if (!user) {
-    throw new HttpError(401, "Email id not registered.");
+    throw new HttpError(400, "Email id not registered.");
   }
   const isPasswordValid = await comparePassword(loginData.password, user.password);
 
   if (!isPasswordValid) {
-    throw new HttpError(401, "Invalid  password provided.");
+    throw new HttpError(400, "Invalid  password provided.");
   }
 
   const { accessToken, refreshToken } = generateTokens({ id: user.id, role: user.role, email: user.email });
@@ -83,20 +83,20 @@ export const createTokenService = async (loginData: IUserLogin): Promise<ICreate
 export const refreshAccessTokenService = async (req: Request): Promise<ICreateToken> => {
   const token = req.cookies?.refreshToken;
   if (!token) {
-    throw new HttpError(401, "No refresh token received, kindly relogin");
+    throw new HttpError(400, "No refresh token received, kindly relogin");
   }
   if (!REFRESH_TOKEN_SECRET || !ACCESS_TOKEN_SECRET || !ACCESS_TOKEN_EXPIRY || !REFRESH_TOKEN_EXPIRY) {
-    throw new HttpError(401, "Access token, Refresh token, Access Expiry or Refresh Expiry must be missing in env");
+    throw new HttpError(400, "Access token, Refresh token, Access Expiry or Refresh Expiry must be missing in env");
   }
   let decoded: DecodedToken;
   try {
     decoded = jwt.verify(token, REFRESH_TOKEN_SECRET) as DecodedToken;
   } catch (error) {
-    throw new HttpError(401, "Invalid or expired refresh token", error);
+    throw new HttpError(400, "Invalid or expired refresh token", error);
   }
   const user = await User.findById(decoded.id);
   if (!user) {
-    throw new HttpError(401, "User not found in db.");
+    throw new HttpError(400, "User not found in db.");
   }
   const { accessToken, refreshToken } = generateTokens({ id: user.id, role: user.role, email: user.email });
   return createAndRefreshTokenResponse(user, accessToken, refreshToken);

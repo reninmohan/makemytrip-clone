@@ -14,6 +14,8 @@ export const validateInput = (schema: ZodSchema) => {
       const validateData = await schema.parseAsync(req.body);
       req.body = validateData;
       console.log("Validation was successful console logging  only for testing purpose..");
+      console.clear();
+      console.log(req.body);
       return next();
     } catch (error) {
       return next(new HttpError(400, "Input Validation Failed", error));

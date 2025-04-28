@@ -116,7 +116,7 @@ function HotelSearchResults() {
 
       <div className="space-y-4">
         {hotels.map((hotel) => (
-          <Card key={hotel.id} className="overflow-hidden">
+          <Card key={hotel.id} className="mr-4 overflow-hidden">
             <div className="flex h-full flex-col md:flex-row">
               {/* IMAGE SECTION */}
               <div className="relative h-60 flex-shrink-0 md:h-64 md:w-1/3">

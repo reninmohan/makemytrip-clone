@@ -11,17 +11,17 @@ export const loginByAdminService = async (req: IUserLogin) => {
   const user = await User.findOne({ email: email });
 
   if (!user) {
-    throw new HttpError(401, "User not found in db");
+    throw new HttpError(400, "User not found in db");
   }
 
   if (user.role !== "admin") {
-    throw new HttpError(401, "User is not authorized for admin access.");
+    throw new HttpError(400, "User is not authorized for admin access.");
   }
 
   const isPasswordValid = await comparePassword(password, user.password);
 
   if (!isPasswordValid) {
-    throw new HttpError(401, "Invalid password provided");
+    throw new HttpError(400, "Invalid password provided");
   }
 
   const { accessToken, refreshToken } = generateTokens({ id: user.id, email: user.email, role: user.role });

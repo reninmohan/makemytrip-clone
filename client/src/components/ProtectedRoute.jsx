@@ -1,17 +1,20 @@
-"use client";
+// src/components/ProtectedRoute.js
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import SpinnerFullPage from "./Spinner";
 
-import { useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+const ProtectedRoute = () => {
+  const { isAuthenticated, loading } = useAuth();
 
-const ProtectedRoute = ({ children }) => {
-  const { currentUser } = useContext(AuthContext);
-
-  if (!currentUser) {
-    return <Navigate to="/sign-in" />;
+  if (loading) {
+    return <p>Loading...</p>;
   }
 
-  return children;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

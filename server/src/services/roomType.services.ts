@@ -8,7 +8,7 @@ import { Request } from "express";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const toRoomTypeResponse = (roomType: IRoomTypeDocument | any): IRoomTypeResponse => {
   return {
-    id: roomType._id.toString(),
+    id: roomType?._id.toString(),
     name: roomType.name,
     hotel: roomType.hotel?.toString(),
     description: roomType.description,
@@ -91,10 +91,34 @@ export const deleteRoomTypeService = async (req: RequestWithUser): Promise<IRoom
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-export const getAllRoomTypesService = async (): Promise<IRoomTypeResponse[]> => {
-  const allRoomTypes = await RoomType.find();
+export const getAllRoomTypesService = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toHotelResponse = (hotel: any) => {
+    return {
+      id: hotel?._id.toString(),
+      name: hotel?.name,
+    };
+  };
 
-  return allRoomTypes.map((roomtype) => toRoomTypeResponse(roomtype));
+  const toRoomTypeAllResponse = (roomType: IRoomTypeDocument) => {
+    return {
+      id: roomType._id.toString(),
+      name: roomType?.name,
+      hotel: toHotelResponse(roomType?.hotel),
+      description: roomType.description,
+      capacity: roomType.capacity,
+      pricePerNight: roomType.pricePerNight,
+      amenities: roomType.amenities,
+      images: roomType.images,
+      bedType: roomType.bedType,
+      countInStock: roomType.countInStock,
+      createdAt: roomType.createdAt,
+      updatedAt: roomType.updatedAt,
+    };
+  };
+
+  const allRoomTypes = await RoomType.find({}).populate("hotel", "_id name");
+  return allRoomTypes.map((roomtype) => toRoomTypeAllResponse(roomtype));
 };
 
 export const getRoomTypeByIdService = async (req: Request): Promise<IRoomTypeResponse> => {

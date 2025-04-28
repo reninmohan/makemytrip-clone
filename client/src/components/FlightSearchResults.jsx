@@ -154,7 +154,7 @@ function FlightSearchResults() {
       </div>
 
       <Tabs defaultValue="best" className="w-full">
-        <TabsList className="mb-4 grid w-full max-w-md grid-cols-4">
+        <TabsList className="mb-4 grid w-full max-w-md grid-cols-4 rounded-xl">
           <TabsTrigger value="best">Best</TabsTrigger>
           <TabsTrigger value="cheapest">Cheapest</TabsTrigger>
           <TabsTrigger value="fastest">Fastest</TabsTrigger>
@@ -163,7 +163,7 @@ function FlightSearchResults() {
 
         <TabsContent value="best" className="space-y-4">
           {flights.map((flight) => (
-            <Card key={flight.id} className="overflow-hidden">
+            <Card key={flight.id} className="mr-4 overflow-hidden">
               <div className="p-6">
                 <div className="flex flex-col gap-6 lg:flex-row">
                   {/* Airline Info */}

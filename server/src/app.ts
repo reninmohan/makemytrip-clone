@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import indexRouter from "./routes/index.js";
 import { unknownRoute } from "./middlewares/unknownRoute.middleware.js";
 import { globalErrorResponse } from "./middlewares/globalErrorResponse.middleware.js";
-import ENV from "./config/env.config.js";
+// import ENV from "./config/env.config.js";
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: ENV.CORS_ORIGIN,
+    origin: "http://localhost:5173",
     credentials: true,
   }),
 );
