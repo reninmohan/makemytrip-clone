@@ -233,7 +233,7 @@ export const deleteFlightService = async (req: Request): Promise<IFlightResponse
 };
 
 export const getAllFlightService = async (): Promise<IFlightResponse[]> => {
-  const flights = await Flight.find({});
+  const flights = await Flight.find({}).populate(["airline", "departureAirport", "arrivalAirport"]);
 
   if (flights.length === 0) {
     return [];

@@ -39,7 +39,7 @@ export default function HotelForm({ hotelId, onSuccess, onCancel }) {
       city: "",
       amenities: [],
       state: "",
-      country: "",
+      country: "India",
       rating: 3,
       address: "",
       latitude: "",
@@ -102,6 +102,7 @@ export default function HotelForm({ hotelId, onSuccess, onCancel }) {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    console.log("hotel data at submit start", data);
     try {
       // Create FormData object for multipart/form-data submission
       const formData = new FormData();
@@ -151,6 +152,7 @@ export default function HotelForm({ hotelId, onSuccess, onCancel }) {
       }
 
       if (isEditMode) {
+        console.log("hotel data on edit", formData);
         await api.put(`/api/admin/hotels/${hotelId}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -158,6 +160,8 @@ export default function HotelForm({ hotelId, onSuccess, onCancel }) {
         });
         toast.success("The hotel has been successfully updated");
       } else {
+        console.log("hotel data on creatre", formData);
+
         await api.post("/api/admin/hotels", formData, {
           headers: {
             "Content-Type": "multipart/form-data",

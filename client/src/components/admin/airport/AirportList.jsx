@@ -99,6 +99,7 @@ export default function AirportList({ onEditAirport }) {
               <TableHead>Code</TableHead>
               <TableHead>City</TableHead>
               <TableHead>Country</TableHead>
+              <TableHead>Airport Id</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -109,6 +110,7 @@ export default function AirportList({ onEditAirport }) {
                 <TableCell>{airport.code}</TableCell>
                 <TableCell>{airport.city}</TableCell>
                 <TableCell>{airport.country}</TableCell>
+                <TableCell>{airport.id}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="icon" onClick={() => onEditAirport(airport.id)}>

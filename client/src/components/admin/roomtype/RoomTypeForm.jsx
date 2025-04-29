@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import toast from "react-hot-toast";
 import { roomTypeSchema } from "./CreateRoomTypeZodSchema";
 import api from "./../../../axiosConfig";
@@ -28,6 +29,7 @@ export default function RoomTypeForm({ roomTypeId, onSuccess, onCancel }) {
   const [fetchError, setFetchError] = useState(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
+  const [hotels, setHotels] = useState([]);
 
   const isEditMode = !!roomTypeId;
 
@@ -38,13 +40,30 @@ export default function RoomTypeForm({ roomTypeId, onSuccess, onCancel }) {
       name: "",
       hotel: "",
       description: "",
-      capacity: 2,
-      pricePerNight: 1000,
+      capacity: 1,
+      pricePerNight: 600,
       amenities: [],
       bedType: "",
       countInStock: 10,
     },
   });
+
+  // Fetch all hotels for dropdowns
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      setFetchLoading(true);
+      try {
+        const response = await api.get("api/admin/hotels");
+        setHotels(response.data?.data || []);
+      } catch (err) {
+        console.error("Error fetching form data:", err);
+        toast.error("Failed to load form data. Please try again.");
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    fetchDropdowns();
+  }, []);
 
   useEffect(() => {
     if (roomTypeId) {
@@ -195,13 +214,39 @@ export default function RoomTypeForm({ roomTypeId, onSuccess, onCancel }) {
           )}
         />
 
-        {/* Hotel (Multi Select or Select) */}
+        {/* Hotel  */}
+
         <FormField
           control={form.control}
           name="hotel"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Hotel</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Hotel" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {hotels.map((hotel) => (
+                    <SelectItem key={hotel.id} value={hotel.id}>
+                      {hotel.name} ({hotel.location.city})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="hotel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hotel Id</FormLabel>
               <FormControl>
                 <Input placeholder="Enter hotel IDs" {...field} />
               </FormControl>

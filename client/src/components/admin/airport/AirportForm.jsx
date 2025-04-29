@@ -28,7 +28,7 @@ export default function AirportForm({ airportId, onSuccess, onCancel }) {
       name: "",
       code: "",
       city: "",
-      country: "",
+      country: "India",
     },
   });
 

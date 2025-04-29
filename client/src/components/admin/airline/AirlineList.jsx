@@ -98,6 +98,7 @@ export default function AirlineList({ onEditAirline }) {
               <TableHead>Airline</TableHead>
               <TableHead>Airline Name</TableHead>
               <TableHead>Airline Code</TableHead>
+              <TableHead>Airline Id</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -112,6 +113,7 @@ export default function AirlineList({ onEditAirline }) {
                 </TableCell>
                 <TableCell className="font-medium">{airline.name}</TableCell>
                 <TableCell>{airline.code}</TableCell>
+                <TableCell>{airline.id}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="icon" onClick={() => onEditAirline(airline.id)}>
