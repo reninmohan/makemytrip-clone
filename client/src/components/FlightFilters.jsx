@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,25 +6,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-function FlightFilters() {
-  const [priceRange, setPriceRange] = useState([2000, 100000]);
-  const [minPrice, setMinPrice] = useState(2000);
-  const [maxPrice, setMaxPrice] = useState(100000);
-
-  const [stops, setStops] = useState("any");
-  const [departureTimes, setDepartureTimes] = useState([]);
-  const [arrivalTimes, setArrivalTimes] = useState([]);
-  const [selectedAirlines, setSelectedAirlines] = useState([]);
-
+function FlightFilters({ priceRange, setPriceRange, minPrice, setMinPrice, maxPrice, setMaxPrice, stops, setStops, departureTimes, setDepartureTimes, arrivalTimes, setArrivalTimes, selectedAirlines, setSelectedAirlines, onApplyFilters }) {
   const airlines = [
-    { id: "delta", label: "Delta Airlines" },
-    { id: "united", label: "United Airlines" },
-    { id: "american", label: "American Airlines" },
-    { id: "southwest", label: "Southwest Airlines" },
-    { id: "jetblue", label: "JetBlue Airways" },
-    { id: "spirit", label: "Spirit Airlines" },
-    { id: "frontier", label: "Frontier Airlines" },
-    { id: "alaska", label: "Alaska Airlines" },
+    { id: "indigo", label: "IndiGo" },
+    { id: "airindia", label: "Air India" },
+    { id: "airindiaexpress", label: "Air India Express" },
+    { id: "vistara", label: "Vistara" },
+    { id: "spicejet", label: "SpiceJet" },
+    { id: "akasa", label: "Akasa Air" },
+    { id: "goair", label: "Go First" },
+    { id: "allianceair", label: "Alliance Air" },
   ];
 
   const timeOptions = [
@@ -35,16 +25,8 @@ function FlightFilters() {
     { id: "after6pm", label: "After 6PM", value: "after6pm" },
   ];
 
-  const handleDepartureTimeChange = (value) => {
-    setDepartureTimes((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
-  };
-
-  const handleArrivalTimeChange = (value) => {
-    setArrivalTimes((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
-  };
-
-  const handleAirlineChange = (id) => {
-    setSelectedAirlines((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  const toggleSelection = (value, currentList, setter) => {
+    setter(currentList.includes(value) ? currentList.filter((v) => v !== value) : [...currentList, value]);
   };
 
   const handleSliderChange = (values) => {
@@ -69,7 +51,19 @@ function FlightFilters() {
     <div className="bg-card sticky top-20 h-fit space-y-6 rounded-lg border p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Filters</h2>
-        <Button variant="ghost" size="sm">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setPriceRange([2000, 100000]);
+            setMinPrice(2000);
+            setMaxPrice(100000);
+            setStops("any");
+            setDepartureTimes([]);
+            setArrivalTimes([]);
+            setSelectedAirlines([]);
+          }}
+        >
           Reset All
         </Button>
       </div>
@@ -80,10 +74,10 @@ function FlightFilters() {
           <AccordionTrigger className="py-3">Price Range</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
             <div className="space-y-4">
-              <Slider value={priceRange} min={2000} max={100000} step={500} onValueChange={handleSliderChange} className="mt-2" />
+              <Slider value={priceRange} className="mt-2" min={2000} max={100000} step={500} onValueChange={handleSliderChange} />
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
                 <div className="flex items-center overflow-hidden rounded-md border">
-                  <span className="bg-muted text-muted-foreground h-full px-2">₹</span>
+                  <span className="bg-muted text-muted-foreground px-2">₹</span>
                   <Input type="number" value={minPrice} onChange={handleMinPriceChange} className="w-full border-0" />
                 </div>
                 <span className="text-muted-foreground text-center">to</span>
@@ -117,16 +111,12 @@ function FlightFilters() {
         <AccordionItem value="airlines" className="border-b">
           <AccordionTrigger className="py-3">Airlines</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
-            <div className="grid grid-cols-1 gap-2">
-              {airlines.map((airline) => (
-                <div key={airline.id} className="flex items-center space-x-2">
-                  <Checkbox id={airline.id} checked={selectedAirlines.includes(airline.id)} onCheckedChange={() => handleAirlineChange(airline.id)} />
-                  <Label htmlFor={airline.id} className="cursor-pointer">
-                    {airline.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {airlines.map((airline) => (
+              <div key={airline.id} className="flex items-center space-y-2 space-x-2">
+                <Checkbox id={airline.id} checked={selectedAirlines.includes(airline.id)} onCheckedChange={() => toggleSelection(airline.id, selectedAirlines, setSelectedAirlines)} />
+                <Label htmlFor={airline.id}>{airline.label}</Label>
+              </div>
+            ))}
           </AccordionContent>
         </AccordionItem>
 
@@ -134,16 +124,12 @@ function FlightFilters() {
         <AccordionItem value="departure" className="border-b">
           <AccordionTrigger className="py-3">Departure Time</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
-            <div className="grid grid-cols-1 gap-2">
-              {timeOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
-                  <Checkbox id={`departure-${option.id}`} checked={departureTimes.includes(option.value)} onCheckedChange={() => handleDepartureTimeChange(option.value)} />
-                  <Label htmlFor={`departure-${option.id}`} className="cursor-pointer">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {timeOptions.map((option) => (
+              <div key={option.id} className="flex items-center space-y-2 space-x-2">
+                <Checkbox id={`departure-${option.id}`} checked={departureTimes.includes(option.value)} onCheckedChange={() => toggleSelection(option.value, departureTimes, setDepartureTimes)} />
+                <Label htmlFor={`departure-${option.id}`}>{option.label}</Label>
+              </div>
+            ))}
           </AccordionContent>
         </AccordionItem>
 
@@ -151,35 +137,17 @@ function FlightFilters() {
         <AccordionItem value="arrival" className="border-b">
           <AccordionTrigger className="py-3">Arrival Time</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
-            <div className="grid grid-cols-1 gap-2">
-              {timeOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
-                  <Checkbox id={`arrival-${option.id}`} checked={arrivalTimes.includes(option.value)} onCheckedChange={() => handleArrivalTimeChange(option.value)} />
-                  <Label htmlFor={`arrival-${option.id}`} className="cursor-pointer">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {timeOptions.map((option) => (
+              <div key={option.id} className="flex items-center space-y-2 space-x-2">
+                <Checkbox id={`arrival-${option.id}`} checked={arrivalTimes.includes(option.value)} onCheckedChange={() => toggleSelection(option.value, arrivalTimes, setArrivalTimes)} />
+                <Label htmlFor={`arrival-${option.id}`}>{option.label}</Label>
+              </div>
+            ))}
           </AccordionContent>
         </AccordionItem>
       </Accordion>
 
-      <Button
-        variant="primary"
-        className="w-full"
-        onClick={() =>
-          console.log({
-            priceRange,
-            minPrice,
-            maxPrice,
-            stops,
-            selectedAirlines,
-            departureTimes,
-            arrivalTimes,
-          })
-        }
-      >
+      <Button variant="primary" className="w-full" onClick={onApplyFilters}>
         Apply Filters
       </Button>
     </div>

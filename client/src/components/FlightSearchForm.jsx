@@ -9,30 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon, Search, Plane } from "lucide-react";
 import { format } from "date-fns";
 
-function FlightSearch({ onSearch }) {
+function FlightSearch() {
   const navigate = useNavigate();
   const [from, setForm] = useState("");
   const [to, setTo] = useState("");
   const [departDate, setDepartDate] = useState(null);
-  // const [returnDate, setReturnDate] = useState(null);
   const [passengers, setPassengers] = useState("1");
   const [travelClass, setTravelClass] = useState("economy");
 
   const handleSearch = (e) => {
     e.preventDefault();
 
-    // Format dates for URL
     const departDateStr = departDate ? format(departDate, "yyyy-MM-dd") : "";
 
-    onSearch({
-      from,
-      to,
-      departDate,
-      passengers,
-      travelClass,
-    });
-
-    navigate(`/flights/search?origin=${origin}&destination=${to}&departDate=${departDateStr}&travelers=${passengers}&class=${travelClass}`);
+    navigate(`/flights/search?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&departDate=${departDateStr}&travelers=${passengers}&class=${travelClass}`);
   };
 
   return (

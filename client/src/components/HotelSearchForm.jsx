@@ -20,7 +20,8 @@ function HotelSearch() {
   const handleSearch = (e) => {
     e.preventDefault();
 
-    // Format dates for URL
+    console.log(destination, checkIn, checkOut, guests, rooms);
+
     const checkInStr = checkIn ? format(checkIn, "yyyy-MM-dd") : "";
     const checkOutStr = checkOut ? format(checkOut, "yyyy-MM-dd") : "";
 
@@ -31,7 +32,6 @@ function HotelSearch() {
       return alert("Check-out date must be after check-in date.");
     }
 
-    // Navigate to search results with query params
     navigate(`/hotels/search?destination=${encodeURIComponent(destination)}&checkInDate=${checkInStr}&checkOutDate=${checkOutStr}&capacity=${guests}&rooms=${rooms}`);
   };
 

@@ -17,6 +17,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import HotelDetails from "./components/user/hotel/HotelDetails";
 import HotelBooking from "./components/user/hotel/HotelBooking";
 import BookingConfirmation from "./components/user/BookingConfirmation";
+import FlightDetails from "./components/user/flight/FlightDetails";
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
             <Route path="/" index element={<Homepage />} />
             <Route path="/flights" element={<FlightSearchPage />} />
             <Route path="/flights/search" element={<FlightSearchPage />} />
-            <Route path="/flights/:flightId" element={<p>This is details of flights</p>} />
+            <Route path="/flights/:flightId" element={<FlightDetails />} />
 
             <Route path="/hotels" element={<HotelSearchPage />} />
             <Route path="/hotels/search" element={<HotelSearchPage />} />

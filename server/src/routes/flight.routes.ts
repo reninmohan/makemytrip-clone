@@ -1,6 +1,7 @@
 import express from "express";
 
 import { filterAndSearchAllFlightsService } from "../services/flight.services.js";
+import { getFlight } from "../controllers/flight.controller.js";
 
 const flightRouter = express.Router();
 
@@ -8,6 +9,6 @@ const flightRouter = express.Router();
 flightRouter.get("/search", filterAndSearchAllFlightsService);
 
 //Get full details of a specific flight
-flightRouter.get("/:flightId");
+flightRouter.get("/:flightId", getFlight);
 
 export default flightRouter;
