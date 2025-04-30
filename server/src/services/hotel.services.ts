@@ -90,7 +90,7 @@ export const deleteHotelService = async (req: RequestWithUser): Promise<IHotelRe
   return toHotelResponse(deletedHotel);
 };
 
-export const showAllHotelDetailsService = async () => {
+export const getAllHotelsService = async () => {
   const toAllHotelResponse = (hotel: IHotelDocument) => {
     return {
       id: hotel?.id.toString(),
@@ -119,7 +119,7 @@ export const showAllHotelDetailsService = async () => {
 
 // Public rotues for non logged or logged users.
 
-export const fetchSpecficHotelService = async (req: RequestWithUser): Promise<IHotelResponse> => {
+export const getHotelService = async (req: RequestWithUser): Promise<IHotelResponse> => {
   const { hotelId } = req.params;
 
   if (!hotelId) {
@@ -137,24 +137,30 @@ export const fetchSpecficHotelService = async (req: RequestWithUser): Promise<IH
 
 //Fetch all hotel with filteration.
 export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number; totalPages: number; currentPage: number }> => {
-  const { city, state, country, amenities, minPrice, maxPrice, capacity, rating, page = "1", limit = "10", checkInDate, checkOutDate } = req.query;
+  const { destination, amenities, minPrice, maxPrice, capacity, rating, page = "1", limit = "10", checkInDate, checkOutDate } = req.query;
 
   const query: any = {};
 
-  if (country) query["location.country"] = { $regex: new RegExp(country as string, "i") };
-  if (state) query["location.state"] = { $regex: new RegExp(state as string, "i") };
-  if (city) query["location.city"] = { $regex: new RegExp(city as string, "i") };
+  if (destination) {
+    const regex = new RegExp(destination as string, "i");
+    query.$or = [{ "location.city": { $regex: regex } }, { "location.state": { $regex: regex } }, { "location.country": { $regex: regex } }];
+  } else {
+    if (req.query.city) query["location.city"] = { $regex: new RegExp(req.query.city as string, "i") };
+    if (req.query.state) query["location.state"] = { $regex: new RegExp(req.query.state as string, "i") };
+    if (req.query.country) query["location.country"] = { $regex: new RegExp(req.query.country as string, "i") };
+  }
 
-  if (rating) query.rating = { $gte: Number(rating) };
+  if (rating) query.rating = { $lte: Number(rating) };
 
   if (amenities) {
     const amenitiesArray = Array.isArray(amenities) ? amenities : (amenities as string).split(",");
     query.amenities = { $all: amenitiesArray };
-    // query.amenities = { $in: amenitiesArray };
   }
 
   // Initial find with population
   const allHotels = await Hotel.find(query).populate("roomTypes");
+
+  console.log("all hotels inside service ", allHotels);
 
   let filteredHotels = allHotels;
 

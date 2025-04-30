@@ -44,10 +44,6 @@ export function SpecialOffers() {
           {offers.map((offer) => (
             <Card key={offer.title} className="group overflow-hidden border-0 p-0 shadow-md transition-shadow duration-300 hover:shadow-lg">
               <div className="relative h-72 w-full overflow-hidden">
-                <Badge className="bg-primary text-primary-foreground absolute top-3 right-3 z-10">
-                  <Percent className="mr-1 h-3 w-3" />
-                  {offer.discount}
-                </Badge>
                 <img src={offer.image || "/placeholder.svg"} alt={offer.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
               </div>
               <CardContent className="p-6">

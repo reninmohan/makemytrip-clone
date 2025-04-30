@@ -11,12 +11,12 @@ import FlightSearchPage from "./pages/FlightSearchPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminDashboard from "./pages/AdminDashboard";
 import { Toaster } from "react-hot-toast";
-import FlightRecommended from "./pages/FlightRecommendedPage";
-import HotelRecommended from "./pages/HotelRecommended";
-import Test from "./pages/Test";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
+import HotelDetails from "./components/user/hotel/HotelDetails";
+import HotelBooking from "./components/user/hotel/HotelBooking";
+import BookingConfirmation from "./components/user/BookingConfirmation";
 
 function App() {
   return (
@@ -27,16 +27,23 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" index element={<Homepage />} />
             <Route path="/flights" element={<FlightSearchPage />} />
+            <Route path="/flights/search" element={<FlightSearchPage />} />
+            <Route path="/flights/:flightId" element={<p>This is details of flights</p>} />
+
             <Route path="/hotels" element={<HotelSearchPage />} />
+            <Route path="/hotels/search" element={<HotelSearchPage />} />
+            <Route path="/hotels/:hotelId" element={<HotelDetails />} />
+
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+
             {/* Protected routes for booking and profile */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/booking/flight/book/:flightId" element={<p>This is protected booking page for flights</p>} />
+              <Route path="/booking/hotel/book/:hotelId" element={<HotelBooking />} />
+              <Route path="/booking/confirmation/:type/:id" element={<BookingConfirmation />} />
             </Route>
-            <Route path="/flightrecom" element={<FlightRecommended />} />
-            <Route path="/hotelrecom" element={<HotelRecommended />} />
-            <Route path="/test" element={<Test />} />
           </Route>
 
           <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -45,11 +52,9 @@ function App() {
           <Route element={<AdminProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" index element={<AdminDashboard />} />
-              {/* Add more admin routes here */}
             </Route>
           </Route>
 
-          {/* 404 Route - Catch all unmatched routes */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

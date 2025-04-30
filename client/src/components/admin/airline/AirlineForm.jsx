@@ -133,7 +133,7 @@ export default function AirlineForm({ airlineId, onSuccess, onCancel }) {
                 <AvatarFallback>{form.watch("code") || "Logo"}</AvatarFallback>
               </Avatar>
               <div className="flex items-center gap-2">
-                <label htmlFor="logo-upload" className="text-primary-foreground hover:bg-primary/90 flex cursor-pointer items-center gap-2 rounded-md bg-blue-600 px-4 py-2">
+                <label htmlFor="logo-upload" className="flex cursor-pointer items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white">
                   <Upload className="h-4 w-4" />
                   {logoPreview ? "Change Logo" : "Upload Logo"}
                 </label>
@@ -169,7 +169,7 @@ export default function AirlineForm({ airlineId, onSuccess, onCancel }) {
               )}
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-between gap-2 md:justify-end">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>

@@ -2,31 +2,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HotelBookedCard } from "../HotelBookedCard";
 import { FlightBookedCard } from "../FlightBookedCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const hotelBookings = [
-  {
-    hotelName: "Grand Hyatt",
-    location: "Mumbai, India",
-    checkIn: "2024-03-15",
-    checkOut: "2024-03-18",
-    guests: "2 Adults, 1 Child",
-    roomType: "Deluxe Room",
-    price: 15000,
-    bookingId: "HOTEL123456",
-    image: "/hotel-placeholder.jpg",
-  },
-  {
-    hotelName: "Taj Mahal Palace",
-    location: "Mumbai, India",
-    checkIn: "2024-04-01",
-    checkOut: "2024-04-03",
-    guests: "2 Adults",
-    roomType: "Luxury Suite",
-    price: 25000,
-    bookingId: "HOTEL789012",
-    image: "/hotel-placeholder.jpg",
-  },
-];
+import { useState, useEffect } from "react";
+import api from "@/axiosConfig";
+import toast from "react-hot-toast";
 
 const flightBookings = [
   {
@@ -56,6 +34,26 @@ const flightBookings = [
 ];
 
 export function AdminAllBookingsSection() {
+  const [hotelBookings, setHotelBookings] = useState([]);
+  // const [flightBookings, setFlightBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHotelBookings = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/api/admin/bookings/hotel");
+        setHotelBookings(res.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch hotel bookings", error);
+        toast.error("Failed to load hotel bookings");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHotelBookings();
+  }, []);
   return (
     <div className="mx-4 space-y-6 md:mx-0">
       <Card className="mx-4 space-y-4">

@@ -14,7 +14,7 @@ function HotelSearch() {
   const [destination, setDestination] = useState("");
   const [checkIn, setCheckIn] = useState();
   const [checkOut, setCheckOut] = useState();
-  const [guests, setGuests] = useState("2");
+  const [guests, setGuests] = useState("1");
   const [rooms, setRooms] = useState("1");
 
   const handleSearch = (e) => {
@@ -24,8 +24,15 @@ function HotelSearch() {
     const checkInStr = checkIn ? format(checkIn, "yyyy-MM-dd") : "";
     const checkOutStr = checkOut ? format(checkOut, "yyyy-MM-dd") : "";
 
+    if (!destination || !checkIn || !checkOut || !guests || !rooms) {
+      return alert("Please fill out all fields.");
+    }
+    if (checkIn >= checkOut) {
+      return alert("Check-out date must be after check-in date.");
+    }
+
     // Navigate to search results with query params
-    navigate(`/hotels/search?destination=${destination}&checkIn=${checkInStr}&checkOut=${checkOutStr}&guests=${guests}&rooms=${rooms}`);
+    navigate(`/hotels/search?destination=${encodeURIComponent(destination)}&checkInDate=${checkInStr}&checkOutDate=${checkOutStr}&capacity=${guests}&rooms=${rooms}`);
   };
 
   return (

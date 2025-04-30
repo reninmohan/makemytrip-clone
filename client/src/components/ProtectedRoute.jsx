@@ -1,13 +1,17 @@
 // src/components/ProtectedRoute.js
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import SpinnerFullPage from "./Spinner";
 
 const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2"></div>
+        <span className="ml-4">Loading hotel data...</span>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

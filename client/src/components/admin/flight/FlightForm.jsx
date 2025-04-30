@@ -452,7 +452,7 @@ export default function FlightForm({ flightId, onSuccess, onCancel }) {
               />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-between gap-2 md:justify-end">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>

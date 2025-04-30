@@ -163,11 +163,11 @@ export default function AirportForm({ airportId, onSuccess, onCancel }) {
               )}
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-between gap-2 md:justify-end">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} variant="primary">
                 {loading ? (
                   <>
                     <span className="mr-2 animate-spin">⟳</span>

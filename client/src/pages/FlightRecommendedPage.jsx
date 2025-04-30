@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import FlightSearchForm from "../components/FlightSearchForm";
-// import { popularDestinationCarousel } from "../mockdata";
 
 const FlightRecommended = () => {
   const [destinations, setDestinations] = useState([]);
@@ -13,16 +11,10 @@ const FlightRecommended = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch recommended destinations
     const fetchDestinations = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be an API call
-        // For now, we'll use mock data
-        // const response = await axios.get('/api/destinations/recommended');
-        // setDestinations(response.data);
 
-        // Mock data
         const mockDestinations = [
           {
             id: 1,
@@ -86,12 +78,6 @@ const FlightRecommended = () => {
     fetchDestinations();
   }, []);
 
-  const handleSearch = (searchParams) => {
-    // Convert search params to query string
-    const queryString = new URLSearchParams(searchParams).toString();
-    navigate(`/flights/search?${queryString}`);
-  };
-
   const settings = {
     dots: true,
     infinite: true,
@@ -121,19 +107,11 @@ const FlightRecommended = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
           <div className="text-center">
             <h1 className="mb-4 text-4xl font-extrabold md:text-5xl">Discover Your Next Adventure</h1>
             <p className="mx-auto max-w-3xl text-xl md:text-2xl">Explore our recommended destinations and find the best flight deals</p>
-          </div>
-
-          {/* Search Box */}
-          <div className="mt-12 overflow-hidden rounded-lg bg-white shadow-lg">
-            <div className="p-6">
-              <h2 className="mb-4 text-xl font-semibold text-gray-800">Search Flights</h2>
-              <FlightSearchForm onSearch={handleSearch} />
-            </div>
           </div>
         </div>
       </div>

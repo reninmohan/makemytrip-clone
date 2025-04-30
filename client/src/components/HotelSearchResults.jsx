@@ -1,102 +1,162 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { MapPin, Star, Wifi, Car, Coffee, Check } from "lucide-react";
+import { MapPin, Star, Wifi, Car, WavesLadder, Check } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dumbbell, Bath, Utensils, Wine, Bus } from "lucide-react";
+import api from "../axiosConfig.js";
+import toast from "react-hot-toast";
 
-function HotelSearchResults() {
+function HotelSearchResults({ filters }) {
+  const [searchParams] = useSearchParams();
+  const [hotels, setHotels] = useState([]);
+
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
   const [sortBy, setSortBy] = useState("recommended");
 
-  // Mock data for hotel search results
-  const hotels = [
-    {
-      id: 1,
-      name: "Grand Plaza Hotel",
-      location: "Downtown, New York",
-      image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
-      price: 16500,
-      originalPrice: 20650,
-      rating: 4.8,
-      reviews: 324,
-      amenities: ["Free WiFi", "Free Parking", "Breakfast Included"],
-      promoted: true,
-      distance: "0.5 miles from center",
-    },
-    {
-      id: 2,
-      name: "Oceanview Resort & Spa",
-      location: "Beachfront, Miami",
-      image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
-      price: 24850,
-      originalPrice: 29800,
-      rating: 4.9,
-      reviews: 512,
-      amenities: ["Free WiFi", "Pool", "Spa", "Breakfast Included"],
-      promoted: false,
-      distance: "On the beach",
-    },
-    {
-      id: 3,
-      name: "City Lights Boutique Hotel",
-      location: "Theater District, New York",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
-      price: 14850,
-      originalPrice: 17350,
-      rating: 4.6,
-      reviews: 208,
-      amenities: ["Free WiFi", "Restaurant", "Bar"],
-      promoted: false,
-      distance: "1.2 miles from center",
-    },
-    {
-      id: 4,
-      name: "Mountain View Lodge",
-      location: "Uptown, Denver",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
-      price: 12350,
-      originalPrice: 15700,
-      rating: 4.5,
-      reviews: 186,
-      amenities: ["Free WiFi", "Free Parking", "Pet Friendly"],
-      promoted: false,
-      distance: "3.5 miles from center",
-    },
-    {
-      id: 5,
-      name: "Riverside Luxury Suites",
-      location: "River District, Chicago",
-      image: "https://images.unsplash.com/photo-1560448205-4d9b3e6bb6db?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
-      price: 21500,
-      originalPrice: 24850,
-      rating: 4.7,
-      reviews: 273,
-      amenities: ["Free WiFi", "Gym", "Room Service"],
-      promoted: false,
-      distance: "0.8 miles from center",
-    },
-  ];
+  const { minPrice, maxPrice, selectedAmenities, selectedRating } = filters;
 
-  const getAmenityIcon = (amenity) => {
-    switch (amenity) {
-      case "Free WiFi":
-        return <Wifi className="h-4 w-4" />;
-      case "Free Parking":
-        return <Car className="h-4 w-4" />;
-      case "Breakfast Included":
-        return <Coffee className="h-4 w-4" />;
-      default:
-        return <Check className="h-4 w-4" />;
-    }
+  // Extract query parameters
+  const destination = searchParams.get("destination") || "";
+  const checkInDate = searchParams.get("checkInDate") || "";
+  const checkOutDate = searchParams.get("checkOutDate") || "";
+  const capacity = searchParams.get("capacity") || "1";
+
+  const filterHotels = (hotels) => {
+    return hotels.filter((hotel) => {
+      // Filter by amenities
+      if (selectedAmenities.length > 0) {
+        const hasAllSelectedAmenities = selectedAmenities.every((amenity) => hotel.amenities.includes(amenity.toUpperCase()));
+        if (!hasAllSelectedAmenities) return false;
+      }
+
+      // Filter by rating
+      if (selectedRating > 0 && hotel.rating < selectedRating) {
+        return false;
+      }
+
+      // Filter by price range
+      const lowestRoomPrice = hotel.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), hotel.roomTypes?.[0])?.pricePerNight || 0;
+
+      if (minPrice && lowestRoomPrice < minPrice) return false;
+      if (maxPrice && lowestRoomPrice > maxPrice) return false;
+
+      return true;
+    });
   };
+
+  const sortHotels = (hotels) => {
+    return [...hotels].sort((a, b) => {
+      const aLowestPrice = a.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), a.roomTypes?.[0])?.pricePerNight || 0;
+      const bLowestPrice = b.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), b.roomTypes?.[0])?.pricePerNight || 0;
+
+      switch (sortBy) {
+        case "price-low":
+          return aLowestPrice - bLowestPrice;
+        case "price-high":
+          return bLowestPrice - aLowestPrice;
+        case "rating":
+          return b.rating - a.rating;
+        default:
+          return 0; // recommended - no sorting
+      }
+    });
+  };
+
+  const fetchHotels = useCallback(async () => {
+    setFetchLoading(true);
+    setFetchError(null);
+
+    try {
+      const response = await api.get("api/hotels/search/", {
+        params: {
+          destination,
+          checkInDate,
+          checkOutDate,
+          capacity,
+          minPrice,
+          maxPrice,
+          rating: selectedRating,
+          amenities: selectedAmenities.map((amenity) => amenity.toUpperCase()).join(","),
+        },
+      });
+      setHotels(response.data?.data?.hotels || []);
+    } catch (err) {
+      console.error("Error fetching hotel:", err);
+      setFetchError("Failed to load hotel data. Please try again.");
+      toast.error("Failed to load hotel data. Please try again.");
+    } finally {
+      setFetchLoading(false);
+    }
+  }, [destination, checkInDate, checkOutDate, capacity, minPrice, maxPrice, selectedRating, selectedAmenities]);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      fetchHotels();
+    }, 500); // Debounce for 500ms
+
+    return () => clearTimeout(debounceTimer);
+  }, [fetchHotels]);
+
+  const amenityIcons = {
+    PARKING: <Car className="h-4 w-4" />,
+    GYM: <Dumbbell className="h-4 w-4" />,
+    POOL: <WavesLadder className="h-4 w-4" />,
+    SPA: <Bath className="h-4 w-4" />,
+    RESTAURANT: <Utensils className="h-4 w-4" />,
+    BAR: <Wine className="h-4 w-4" />,
+    WIFI: <Wifi className="h-4 w-4" />,
+    AIRPORT_SHUTTLE: <Bus className="h-4 w-4" />,
+  };
+
+  const getAmenityIcon = (id) => {
+    return amenityIcons[id] || <Check className="h-4 w-4" />;
+  };
+
+  if (fetchLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2"></div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <Card className="border-destructive">
+        <CardContent className="pt-6">
+          <div className="text-destructive text-center">
+            <p>{fetchError}</p>
+            <Button variant="outline" className="mt-4">
+              Go Back
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (hotels.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-6">
+          <div className="text-muted-foreground text-center">
+            <p>No hotels found with mentioned filters please try change filter.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Hotels in New York</h1>
-          <p className="text-muted-foreground">Showing {hotels.length} properties</p>
+          {destination ? <h1 className="text-2xl font-bold">Hotels with Destination {destination}</h1> : <h1 className="text-2xl font-bold">Our all Destination </h1>}
+          <p className="text-muted-foreground">Showing {filterHotels(hotels).length} properties</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm whitespace-nowrap">Sort by:</span>
@@ -113,83 +173,63 @@ function HotelSearchResults() {
           </Select>
         </div>
       </div>
-
       <div className="space-y-4">
-        {hotels.map((hotel) => (
-          <Card key={hotel.id} className="mr-4 overflow-hidden">
-            <div className="flex h-full flex-col md:flex-row">
-              {/* IMAGE SECTION */}
-              <div className="relative h-60 flex-shrink-0 md:h-64 md:w-1/3">
-                <img src={hotel.image || "/placeholder.svg"} alt={hotel.name} className="h-full w-full object-cover" />
-              </div>
+        {sortHotels(filterHotels(hotels)).map((hotel) => {
+          const firstRoom = hotel.roomTypes?.[0];
+          const originalPrice = firstRoom?.pricePerNight * 1.2; // Example markup for original price
+          const lowestRoom = hotel.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), hotel.roomTypes?.[0]);
 
-              {/* CONTENT SECTION */}
-              <div className="flex flex-1 flex-col justify-between p-6">
-                <div className="flex flex-col justify-between gap-4 md:flex-row">
-                  <div className="space-y-2">
-                    <div className="text-muted-foreground flex items-center gap-1 text-sm">
-                      <MapPin className="h-4 w-4" />
-                      <span>{hotel.location}</span>
-                    </div>
-                    <h3 className="text-xl font-semibold">{hotel.name}</h3>
+          return (
+            <Card key={hotel.id} className="mr-4 overflow-hidden">
+              <div className="flex h-full flex-col md:flex-row">
+                {/* IMAGE SECTION */}
+                <div className="relative h-60 flex-shrink-0 md:h-64 md:w-1/3">
+                  <img src={hotel.images?.[0] || "/placeholder.svg"} alt={hotel.name} className="h-full w-full object-cover" />
+                </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {hotel.amenities.map((amenity) => (
-                        <div key={amenity} className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-xs">
-                          {getAmenityIcon(amenity)}
-                          <span>{amenity}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {/* CONTENT SECTION */}
+                <div className="flex flex-1 flex-col justify-between p-6">
+                  <div className="flex flex-col justify-between gap-4 md:flex-row">
+                    <div className="space-y-2">
+                      <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                        <MapPin className="h-4 w-4" />
+                        <span>{hotel.location?.city || "Unknown"}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold">{hotel.name}</h3>
 
-                  <div className="flex flex-col items-end justify-between">
-                    <div className="bg-primary/10 flex items-center gap-1 rounded px-2 py-1">
-                      <span className="font-semibold">{hotel.rating}</span>
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-muted-foreground text-sm">({hotel.reviews})</span>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {hotel.amenities.map((amenity) => (
+                          <div key={amenity} className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-xs">
+                            {getAmenityIcon(amenity)}
+                            <span>{amenity}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="mt-4 text-right md:mt-0">
-                      {hotel.originalPrice > hotel.price && <div className="text-muted-foreground text-sm line-through">${hotel.originalPrice} per night</div>}
-                      <div className="text-2xl font-bold">₹{hotel.price}</div>
-                      <div className="text-muted-foreground text-sm">per night</div>
-                      <Button asChild className="mt-2" variant="primary">
-                        <Link href={`/hotels/${hotel.id}`}>View Deal</Link>
-                      </Button>
+                    <div className="flex flex-col items-end justify-between">
+                      <div className="bg-primary/10 flex items-center gap-1 rounded px-2 py-1">
+                        <span className="font-semibold">{hotel.rating}</span>
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-muted-foreground w-15 text-sm">({hotel.roomTypes?.length || 0} rooms)</span>
+                      </div>
+
+                      <div className="mt-4 text-right md:mt-0">
+                        {originalPrice && originalPrice > lowestRoom?.pricePerNight && <div className="text-muted-foreground text-sm line-through">₹{originalPrice} per night</div>}
+                        <div className="text-2xl font-bold">₹{lowestRoom?.pricePerNight}</div>
+                        <div className="text-muted-foreground text-sm">per night</div>
+                        <Button asChild className="mt-2 hover:bg-blue-700" variant="primary">
+                          <Link to={`/hotels/${hotel.id}`}>View Deal</Link>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
-
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious href="#" />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#" isActive>
-              1
-            </PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#">2</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#">3</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationNext href="#" />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
     </div>
   );
 }

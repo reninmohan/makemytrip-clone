@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,51 +6,41 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Star } from "lucide-react";
 
-function HotelFilters() {
-  const [minPrice, setMinPrice] = useState(50);
-  const [maxPrice, setMaxPrice] = useState(500);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [selectedRating, setSelectedRating] = useState(4); // default 4 star
-  const [selectedPropertyTypes, setSelectedPropertyTypes] = useState(["hotel"]); // default selected
+function HotelFilters({ filters, setFilters }) {
+  const { minPrice, maxPrice, selectedAmenities, selectedRating } = filters;
 
   const amenities = [
-    { id: "wifi", label: "Free WiFi" },
-    { id: "breakfast", label: "Free Breakfast" },
-    { id: "parking", label: "Free Parking" },
+    { id: "parking", label: "Parking" },
+    { id: "gym", label: "Gym" },
     { id: "pool", label: "Swimming Pool" },
-    { id: "gym", label: "Fitness Center" },
     { id: "spa", label: "Spa" },
-    { id: "ac", label: "Air Conditioning" },
     { id: "restaurant", label: "Restaurant" },
-    { id: "pets", label: "Pet Friendly" },
-    { id: "roomService", label: "Room Service" },
+    { id: "bar", label: "Bar" },
+    { id: "wifi", label: "Free WiFi" },
+    { id: "airport_shuttle", label: "Airport Shuttle" },
   ];
 
-  const propertyTypes = [{ id: "hotel", label: "Hotel" }];
-
   const handleAmenityChange = (id) => {
-    setSelectedAmenities((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+    const updated = selectedAmenities.includes(id) ? selectedAmenities.filter((item) => item !== id) : [...selectedAmenities, id];
+    setFilters((prev) => ({ ...prev, selectedAmenities: updated }));
   };
 
   const handleRatingChange = (rating) => {
-    setSelectedRating((prev) => (prev === rating ? null : rating));
-  };
-
-  const handlePropertyTypeChange = (id) => {
-    setSelectedPropertyTypes((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+    setFilters((prev) => ({ ...prev, selectedRating: prev.selectedRating === rating ? null : rating }));
   };
 
   const handlePriceChange = ([newMin, newMax]) => {
-    setMinPrice(newMin);
-    setMaxPrice(newMax);
+    setFilters((prev) => ({ ...prev, minPrice: newMin, maxPrice: newMax }));
   };
 
   const handleResetFilters = () => {
-    setMinPrice(50);
-    setMaxPrice(500);
-    setSelectedAmenities([]);
-    setSelectedRating(4);
-    setSelectedPropertyTypes(["hotel"]);
+    setFilters({
+      minPrice: 50,
+      maxPrice: 500,
+      selectedAmenities: [],
+      selectedRating: 4,
+      selectedPropertyTypes: ["hotel"],
+    });
   };
 
   return (
@@ -73,12 +62,12 @@ function HotelFilters() {
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
                 <div className="flex items-center overflow-hidden rounded-md border">
                   <span className="bg-muted text-muted-foreground h-full px-2">₹</span>
-                  <Input type="number" value={minPrice} onChange={(e) => setMinPrice(parseInt(e.target.value) || 0)} className="w-full border-0" />
+                  <Input type="number" value={minPrice} onChange={(e) => handlePriceChange([parseInt(e.target.value) || 0, maxPrice])} className="w-full border-0" />
                 </div>
                 <span className="text-muted-foreground text-center">to</span>
                 <div className="flex items-center overflow-hidden rounded-md border">
                   <span className="bg-muted text-muted-foreground px-2">₹</span>
-                  <Input type="number" value={maxPrice} onChange={(e) => setMaxPrice(parseInt(e.target.value) || 0)} className="w-full border-0" />
+                  <Input type="number" value={maxPrice} onChange={(e) => handlePriceChange([minPrice, parseInt(e.target.value) || 0])} className="w-full border-0" />
                 </div>
               </div>
             </div>
@@ -87,7 +76,7 @@ function HotelFilters() {
 
         {/* Rating Filter */}
         <AccordionItem value="rating" className="border-b">
-          <AccordionTrigger className="py-3">Star Rating</AccordionTrigger>
+          <AccordionTrigger className="py-3">Hotel Rating</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
             <div className="space-y-2">
               {[5, 4, 3, 2, 1].map((rating) => (
@@ -123,28 +112,7 @@ function HotelFilters() {
             </div>
           </AccordionContent>
         </AccordionItem>
-
-        {/* Property Type Filter */}
-        <AccordionItem value="property" className="border-b">
-          <AccordionTrigger className="py-3">Property Type</AccordionTrigger>
-          <AccordionContent className="pt-1 pb-4">
-            <div className="flex flex-col gap-2">
-              {propertyTypes.map((type) => (
-                <div key={type.id} className="flex items-center space-x-2">
-                  <Checkbox id={type.id} checked={selectedPropertyTypes.includes(type.id)} onCheckedChange={() => handlePropertyTypeChange(type.id)} />
-                  <Label htmlFor={type.id} className="cursor-pointer">
-                    {type.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
-
-      <Button className="w-full" variant="primary">
-        Apply Filters
-      </Button>
     </div>
   );
 }

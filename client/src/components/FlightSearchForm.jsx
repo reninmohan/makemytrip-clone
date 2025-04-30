@@ -10,7 +10,7 @@ import { CalendarIcon, Search, Plane } from "lucide-react";
 import { format } from "date-fns";
 
 function FlightSearch({ onSearch }) {
-  const navigate = useNavigate(); // React Router's useHistory hook for navigation
+  const navigate = useNavigate();
   const [from, setForm] = useState("");
   const [to, setTo] = useState("");
   const [departDate, setDepartDate] = useState(null);
@@ -23,7 +23,7 @@ function FlightSearch({ onSearch }) {
 
     // Format dates for URL
     const departDateStr = departDate ? format(departDate, "yyyy-MM-dd") : "";
-    // const returnDateStr = returnDate ? format(returnDate, "yyyy-MM-dd") : "";
+
     onSearch({
       from,
       to,

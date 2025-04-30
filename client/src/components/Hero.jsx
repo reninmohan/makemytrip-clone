@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Plane, Building } from "lucide-react";
 import FlightSearchForm from "../components/FlightSearchForm";
 import HotelSearchForm from "../components/HotelSearchForm";
-function Hero({ onHotelSearch, handleFlightSearch }) {
+function Hero() {
   return (
     <section className="relative">
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500" />
@@ -31,10 +31,10 @@ function Hero({ onHotelSearch, handleFlightSearch }) {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="hotels" className="p-6">
-              <HotelSearchForm onHotelSearch={onHotelSearch} />
+              <HotelSearchForm />
             </TabsContent>
             <TabsContent value="flights" className="p-6">
-              <FlightSearchForm handleFlightSearch={handleFlightSearch} />
+              <FlightSearchForm />
             </TabsContent>
           </Tabs>
         </div>

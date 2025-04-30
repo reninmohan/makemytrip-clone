@@ -12,16 +12,10 @@ const HotelRecommended = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch recommended destinations
     const fetchDestinations = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be an API call
-        // For now, we'll use mock data
-        // const response = await axios.get('/api/hotels/recommended');
-        // setDestinations(response.data);
 
-        // Mock data
         const mockDestinations = [
           {
             id: 1,

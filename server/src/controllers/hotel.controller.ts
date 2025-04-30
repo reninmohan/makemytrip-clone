@@ -1,7 +1,7 @@
 import { Response, NextFunction, Request } from "express";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { ApiResponse } from "../utils/ApiResponse.utils.js";
-import { updateHotelService, createHotelService, deleteHotelService, fetchSpecficHotelService, checkHotelAvailabilityService, fetchAllRoomsByHotelService, filterAndSearchAllHotelsService, showAllHotelDetailsService } from "../services/hotel.services.js";
+import { updateHotelService, createHotelService, deleteHotelService, checkHotelAvailabilityService, fetchAllRoomsByHotelService, filterAndSearchAllHotelsService, getHotelService, getAllHotelsService } from "../services/hotel.services.js";
 import { IHotel } from "../schemas/hotel.schema.js";
 import { RequestWithUser, RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
 
@@ -43,9 +43,9 @@ export const deleteHotel = async (req: RequestWithUser, res: Response, next: Nex
   }
 };
 
-export const fetchSpecificHotel = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+export const getHotel = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const hotel = await fetchSpecficHotelService(req);
+    const hotel = await getHotelService(req);
 
     return res.status(200).json(new ApiResponse(true, "Fetch Hotel details successfully.", hotel));
   } catch (error) {
@@ -56,9 +56,9 @@ export const fetchSpecificHotel = async (req: RequestWithUser, res: Response, ne
   }
 };
 
-export const showAllHotelDetails = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+export const getAllHotels = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
-    const hotel = await showAllHotelDetailsService();
+    const hotel = await getAllHotelsService();
     return res.status(200).json(new ApiResponse(true, "All Hotel details fetched successfully.", hotel));
   } catch (error) {
     if (error instanceof HttpError) {
