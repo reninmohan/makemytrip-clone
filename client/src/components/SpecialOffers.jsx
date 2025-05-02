@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Percent } from "lucide-react";
+import { Clock } from "lucide-react";
 
 export function SpecialOffers() {
   const offers = [

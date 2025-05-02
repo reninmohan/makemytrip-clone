@@ -14,7 +14,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
-import HotelDetails from "./components/user/hotel/HotelDetails.";
+import HotelDetails from "./components/user/hotel/HotelDetails.jsx";
 import HotelBooking from "./components/user/hotel/HotelBooking.jsx";
 import BookingConfirmation from "./components/user/BookingConfirmation.jsx";
 import FlightDetails from "./components/user/flight/FlightDetails.jsx";
