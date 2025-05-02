@@ -13,12 +13,24 @@ const app = express();
 //to protect app from common web vulnerabilities by setting various HTTP headers.
 app.use(helmet());
 
+const allowedOrigins = [
+  "https://makemytrip-clone-client.vercel.app", // Production
+  "http://localhost:5173", // Vite default dev server
+];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
+app.options("*", cors());
 
 //middleware to parse json in req body
 app.use(express.json({ limit: "16kb" }));
