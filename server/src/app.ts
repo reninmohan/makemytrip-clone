@@ -37,9 +37,6 @@ app.use(express.json({ limit: "16kb" }));
 //middleware to properly parse form data  in req body  & url data, extended option let parse nested objects.
 app.use(express.urlencoded({ extended: true }));
 
-//uncomment at deployment to serve static from public folder
-// app.use(express.static("public"));
-
 app.use(cookieParser());
 
 //middleware to handle all registered routes
