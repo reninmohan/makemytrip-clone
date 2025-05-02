@@ -18,7 +18,7 @@ import HotelDetails from "./components/user/hotel/HotelDetails.jsx";
 import HotelBooking from "./components/user/hotel/HotelBooking.jsx";
 import BookingConfirmation from "./components/user/BookingConfirmation.jsx";
 import FlightDetails from "./components/user/flight/FlightDetails.jsx";
-import Homepage from "./pages/HomePage.jsx";
+import Homepage from "./pages/Homepage.jsx";
 
 function App() {
   return (
