@@ -11,7 +11,7 @@ export const createHotelBooking = async (req: RequestWithUserAndBody<ICreateHote
     const booking = await createHotelBookingService(req);
     return res.status(201).json(new ApiResponse(true, "Hotel Booking successfully.", booking));
   } catch (error) {
-    console.log("server", error);
+    console.error("server", error);
     if (error instanceof HttpError) {
       return next(error);
     }

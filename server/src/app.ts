@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -21,7 +19,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true); // Allow access for postman and mobile
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
@@ -30,6 +28,7 @@ app.use(
     credentials: true,
   }),
 );
+
 app.options("*", cors());
 
 //middleware to parse json in req body

@@ -192,7 +192,7 @@ export const getAllFlights = async (_req: Request, res: Response, next: NextFunc
     const flight = await getAllFlightService();
     return res.status(200).json(new ApiResponse(true, "Fetched details of all flight  successfully.", flight));
   } catch (error) {
-    console.log(error);
+    console.error(error);
     if (error instanceof HttpError) {
       return next(error);
     }
@@ -205,7 +205,7 @@ export const getFlight = async (req: Request, res: Response, next: NextFunction)
     const flight = await getFlightService(req);
     return res.status(200).json(new ApiResponse(true, "Fetched details of all flight  successfully.", flight));
   } catch (error) {
-    console.log(error);
+    console.error(error);
     if (error instanceof HttpError) {
       return next(error);
     }

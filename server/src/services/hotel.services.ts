@@ -160,8 +160,6 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
   // Initial find with population
   const allHotels = await Hotel.find(query).populate("roomTypes");
 
-  console.log("all hotels inside service ", allHotels);
-
   let filteredHotels = allHotels;
 
   if (minPrice || maxPrice || capacity) {
