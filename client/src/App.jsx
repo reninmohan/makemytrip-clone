@@ -1,23 +1,23 @@
-import Homepage from "./pages/HomePage";
-import AppLayout from "./layouts/AppLayout";
-import AdminLayout from "./layouts/AdminLayout";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import SignUpPage from "./pages/SignUpPage";
-import LoginPage from "./pages/LoginPage";
-import AdminLoginPage from "./pages/AdminLoginPage";
-import HotelSearchPage from "./pages/HotelSearchPage";
-import FlightSearchPage from "./pages/FlightSearchPage";
-import ProfilePage from "./pages/ProfilePage";
-import AdminDashboard from "./pages/AdminDashboard";
 import { Toaster } from "react-hot-toast";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
-import NotFoundPage from "./pages/NotFoundPage";
-import HotelDetails from "./components/user/hotel/HotelDetails";
-import HotelBooking from "./components/user/hotel/HotelBooking";
-import BookingConfirmation from "./components/user/BookingConfirmation";
-import FlightDetails from "./components/user/flight/FlightDetails";
+import Homepage from "./pages/HomePage.jsx";
+import AppLayout from "./layouts/AppLayout.jsx";
+import AdminLayout from "./layouts/AdminLayout.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import SignUpPage from "./pages/SignUpPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import AdminLoginPage from "./pages/AdminLoginPage.jsx";
+import HotelSearchPage from "./pages/HotelSearchPage.jsx";
+import FlightSearchPage from "./pages/FlightSearchPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AdminProtectedRoute from "./components/admin/AdminProtectedRoute.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+import HotelDetails from "./components/user/hotel/HotelDetails.";
+import HotelBooking from "./components/user/hotel/HotelBooking.jsx";
+import BookingConfirmation from "./components/user/BookingConfirmation.jsx";
+import FlightDetails from "./components/user/flight/FlightDetails.jsx";
 
 function App() {
   return (

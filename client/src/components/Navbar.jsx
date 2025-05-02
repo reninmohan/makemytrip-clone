@@ -34,11 +34,11 @@ const Navbar = () => {
                 {/* <NavLink to="/" className="nav-link rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-500 hover:text-white"> */}
                 Home
               </NavLink>
-              <NavLink to="/flights" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
-                Flights
-              </NavLink>
               <NavLink to="/hotels" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
                 Hotels
+              </NavLink>
+              <NavLink to="/flights" className={({ isActive }) => (isActive ? "nav-link nav-link-active" : "nav-link")}>
+                Flights
               </NavLink>
               {currentUser && (
                 <>

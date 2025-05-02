@@ -71,11 +71,11 @@ function FlightSearchResults({ filters }) {
 
     try {
       const response = await api.get("/api/flights/search", {
-        // params: {
-        //   origin,
-        //   destination,
-        //   departureDate,
-        // },
+        params: {
+          origin,
+          destination,
+          departureDate,
+        },
       });
       setFlights(response.data?.data || []);
     } catch (error) {
@@ -156,50 +156,47 @@ function FlightSearchResults({ filters }) {
       <div className="space-y-4">
         {sorted.map((flight) => (
           <Card key={flight.id}>
+            {/* <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row"> */}
             <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
-              <div className="flex w-full items-center justify-between gap-8">
-                {/* Airline Logo and Info */}
-                <div className="flex items-center gap-3">
-                  <img src={flight.airline.logo} alt={flight.airline.name} className="h-12 w-12 object-contain" />
-                  <div className="text-left">
-                    <h3 className="text-lg font-semibold">{flight.airline.name}</h3>
-                    <p className="text-muted-foreground text-sm">{flight.flightNumber}</p>
+              {/* Airline Logo and Info */}
+              <div className="flex items-center gap-3">
+                <img src={flight.airline.logo} alt={flight.airline.name} className="h-12 w-12 object-contain" />
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold">{flight.airline.name}</h3>
+                  <p className="text-muted-foreground text-sm">{flight.flightNumber}</p>
+                </div>
+              </div>
+
+              {/* Departure */}
+              <div className="flex flex-col items-center">
+                <span className="text-xl font-bold">{new Date(flight.departureTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                <span className="text-muted-foreground text-sm">
+                  {flight.departureAirport.city} ({flight.departureAirport.code})
+                </span>
+              </div>
+              {/* Arrow */}
+              <div className="flex h-full items-center">
+                <span className="text-muted-foreground">→</span>
+              </div>
+              {/* Arrival */}
+              <div className="flex flex-col items-center">
+                <span className="text-xl font-bold">{new Date(flight.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                <span className="text-muted-foreground text-sm">
+                  {flight.arrivalAirport.city} ({flight.arrivalAirport.code})
+                </span>
+              </div>
+
+              {/* Price, Duration and Book Button */}
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-center">
+                  <div className="text-xl font-bold">₹{flight.price.economy}</div>
+                  <div className="text-muted-foreground text-sm">
+                    {flight.duration} mins • {flight.isNonStop ? "Non-stop" : `${flight.stops || 1} stops`}
                   </div>
                 </div>
-
-                {/* Departure */}
-                <div className="flex flex-col items-center">
-                  <span className="text-xl font-bold">{new Date(flight.departureTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {flight.departureAirport.city} ({flight.departureAirport.code})
-                  </span>
-                </div>
-
-                {/* Arrow */}
-                <div className="flex h-full items-center">
-                  <span className="text-muted-foreground">→</span>
-                </div>
-
-                {/* Arrival */}
-                <div className="flex flex-col items-center">
-                  <span className="text-xl font-bold">{new Date(flight.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {flight.arrivalAirport.city} ({flight.arrivalAirport.code})
-                  </span>
-                </div>
-
-                {/* Price, Duration and Book Button */}
-                <div className="flex flex-col items-end gap-2">
-                  <div className="text-right">
-                    <div className="text-xl font-bold">₹{flight.price.economy}</div>
-                    <div className="text-muted-foreground text-sm">
-                      {flight.duration} hrs • {flight.isNonStop ? "Non-stop" : `${flight.stops || 1} stops`}
-                    </div>
-                  </div>
-                  <Button variant="primary" onClick={() => navigate(`/flights/${flight.id}`)} className="w-full">
-                    Select
-                  </Button>
-                </div>
+                <Button variant="primary" onClick={() => navigate(`/flights/${flight.id}`)} className="w-full">
+                  Select
+                </Button>
               </div>
             </CardContent>
           </Card>

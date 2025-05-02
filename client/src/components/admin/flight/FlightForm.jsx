@@ -152,7 +152,7 @@ export default function FlightForm({ flightId, onSuccess, onCancel }) {
       price: {
         economy: data.economyPrice,
         business: data.businessPrice,
-        firstClass: data.businessPrice,
+        firstClass: data.firstClassPrice,
       },
       availableSeats: {
         economy: data.economyAvailableSeats,
