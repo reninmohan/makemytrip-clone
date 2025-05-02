@@ -164,7 +164,7 @@ export default function FlightList({ onEditFlight }) {
                 <TableCell>₹ {flight.price.economy.toFixed(2)}</TableCell>
                 <TableCell>₹ {flight.price.business.toFixed(2)}</TableCell>
                 <TableCell>₹ {flight.price.firstClass.toFixed(2)}</TableCell>
-                <TableCell>₹ {flight.id}</TableCell>
+                <TableCell>{flight.id}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="icon" onClick={() => onEditFlight(flight.id)}>

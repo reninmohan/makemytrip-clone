@@ -19,7 +19,6 @@ function HotelSearchResults({ filters }) {
 
   const { minPrice, maxPrice, selectedAmenities, selectedRating } = filters;
 
-  // Extract query parameters
   const destination = searchParams.get("destination") || "";
   const checkInDate = searchParams.get("checkInDate") || "";
   const checkOutDate = searchParams.get("checkOutDate") || "";
@@ -27,7 +26,6 @@ function HotelSearchResults({ filters }) {
 
   const filterHotels = (hotels) => {
     return hotels.filter((hotel) => {
-      // Filter by amenities
       if (selectedAmenities.length > 0) {
         const hasAllSelectedAmenities = selectedAmenities.every((amenity) => hotel.amenities.includes(amenity.toUpperCase()));
         if (!hasAllSelectedAmenities) return false;
@@ -155,7 +153,7 @@ function HotelSearchResults({ filters }) {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          {destination ? <h1 className="text-2xl font-bold">Hotels with Destination {destination}</h1> : <h1 className="text-2xl font-bold">Our all Destination </h1>}
+          {destination ? <h1 className="text-2xl font-bold">Hotels with Destination {destination}</h1> : <h1 className="text-2xl font-bold">All Hotels </h1>}
           <p className="text-muted-foreground">Showing {filterHotels(hotels).length} properties</p>
         </div>
         <div className="flex items-center gap-2">

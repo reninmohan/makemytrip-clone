@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, KeyRound, TicketCheck, Hotel, Bed, Building2, Map } from "lucide-react";
+import { User, KeyRound, TicketCheck, Hotel, Bed, Building2, Map, Plane } from "lucide-react";
 import { ProfileSection } from "@/components/ProfileUpdateSection";
 import { PasswordSection } from "@/components/PasswordUpdateSection";
 import { AdminAllBookingsSection } from "@/components/admin/AdminAllBookingSection";
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
                     Room Types Management
                   </Button>
                   <Button variant={activeTab === "password" ? "secondary" : "ghost"} className="justify-start" onClick={() => setActiveTab("airline")}>
-                    <KeyRound className="mr-2 h-4 w-4" />
+                    <Plane className="mr-2 h-4 w-4" />
                     Airline Management
                   </Button>
                   <Button variant={activeTab === "airports" ? "secondary" : "ghost"} className="justify-start" onClick={() => setActiveTab("airports")}>
