@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import AppLayout from "./layouts/AppLayout.jsx";
-import Homepage from "./pages/HomePage.jsx";
+
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
@@ -18,6 +18,7 @@ import HotelDetails from "./components/user/hotel/HotelDetails.jsx";
 import HotelBooking from "./components/user/hotel/HotelBooking.jsx";
 import BookingConfirmation from "./components/user/BookingConfirmation.jsx";
 import FlightDetails from "./components/user/flight/FlightDetails.jsx";
+import Homepage from "./pages/HomePage.jsx";
 
 function App() {
   return (
