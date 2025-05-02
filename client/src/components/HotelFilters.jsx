@@ -21,7 +21,9 @@ function HotelFilters({ filters, setFilters }) {
   ];
 
   const handleAmenityChange = (id) => {
-    const updated = selectedAmenities.includes(id) ? selectedAmenities.filter((item) => item !== id) : [...selectedAmenities, id];
+    const updated = selectedAmenities.includes(id)
+      ? selectedAmenities.filter((item) => item !== id)
+      : [...selectedAmenities, id];
     setFilters((prev) => ({ ...prev, selectedAmenities: updated }));
   };
 
@@ -35,11 +37,10 @@ function HotelFilters({ filters, setFilters }) {
 
   const handleResetFilters = () => {
     setFilters({
-      minPrice: 50,
-      maxPrice: 500,
+      minPrice: 500,
+      maxPrice: 50000,
       selectedAmenities: [],
-      selectedRating: 4,
-      selectedPropertyTypes: ["hotel"],
+      selectedRating: null,
     });
   };
 
@@ -58,16 +59,33 @@ function HotelFilters({ filters, setFilters }) {
           <AccordionTrigger className="py-3">Price Range</AccordionTrigger>
           <AccordionContent className="pt-1 pb-4">
             <div className="space-y-4">
-              <Slider value={[minPrice, maxPrice]} min={0} max={200000} step={10} onValueChange={handlePriceChange} className="mt-2" />
+              <Slider
+                value={[minPrice, maxPrice]}
+                min={0}
+                max={100000}
+                step={100}
+                onValueChange={handlePriceChange}
+                className="mt-2"
+              />
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
                 <div className="flex items-center overflow-hidden rounded-md border">
                   <span className="bg-muted text-muted-foreground h-full px-2">₹</span>
-                  <Input type="number" value={minPrice} onChange={(e) => handlePriceChange([parseInt(e.target.value) || 0, maxPrice])} className="w-full border-0" />
+                  <Input
+                    type="number"
+                    value={minPrice}
+                    onChange={(e) => handlePriceChange([parseInt(e.target.value) || 0, maxPrice])}
+                    className="w-full border-0"
+                  />
                 </div>
                 <span className="text-muted-foreground text-center">to</span>
                 <div className="flex items-center overflow-hidden rounded-md border">
                   <span className="bg-muted text-muted-foreground px-2">₹</span>
-                  <Input type="number" value={maxPrice} onChange={(e) => handlePriceChange([minPrice, parseInt(e.target.value) || 0])} className="w-full border-0" />
+                  <Input
+                    type="number"
+                    value={maxPrice}
+                    onChange={(e) => handlePriceChange([minPrice, parseInt(e.target.value) || 0])}
+                    className="w-full border-0"
+                  />
                 </div>
               </div>
             </div>
@@ -81,7 +99,11 @@ function HotelFilters({ filters, setFilters }) {
             <div className="space-y-2">
               {[5, 4, 3, 2, 1].map((rating) => (
                 <div key={rating} className="flex items-center space-x-2">
-                  <Checkbox id={`rating-${rating}`} checked={selectedRating === rating} onCheckedChange={() => handleRatingChange(rating)} />
+                  <Checkbox
+                    id={`rating-${rating}`}
+                    checked={selectedRating === rating}
+                    onCheckedChange={() => handleRatingChange(rating)}
+                  />
                   <Label htmlFor={`rating-${rating}`} className="flex cursor-pointer items-center">
                     {Array.from({ length: rating }).map((_, i) => (
                       <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -103,7 +125,11 @@ function HotelFilters({ filters, setFilters }) {
             <div className="flex flex-col gap-2">
               {amenities.map((amenity) => (
                 <div key={amenity.id} className="flex items-center space-x-2">
-                  <Checkbox id={amenity.id} checked={selectedAmenities.includes(amenity.id)} onCheckedChange={() => handleAmenityChange(amenity.id)} />
+                  <Checkbox
+                    id={amenity.id}
+                    checked={selectedAmenities.includes(amenity.id)}
+                    onCheckedChange={() => handleAmenityChange(amenity.id)}
+                  />
                   <Label htmlFor={amenity.id} className="cursor-pointer">
                     {amenity.label}
                   </Label>

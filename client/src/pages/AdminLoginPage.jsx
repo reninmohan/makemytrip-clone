@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading} variant="primary">
                   {loading ? "Logging in..." : "Login"}
                 </Button>
               </form>

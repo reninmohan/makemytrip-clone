@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Star, Wifi, Car, WavesLadder, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,17 +27,23 @@ function HotelSearchResults({ filters }) {
   const filterHotels = (hotels) => {
     return hotels.filter((hotel) => {
       if (selectedAmenities.length > 0) {
-        const hasAllSelectedAmenities = selectedAmenities.every((amenity) => hotel.amenities.includes(amenity.toUpperCase()));
+        const hasAllSelectedAmenities = selectedAmenities.every((amenity) =>
+          hotel.amenities.includes(amenity.toUpperCase()),
+        );
         if (!hasAllSelectedAmenities) return false;
       }
 
       // Filter by rating
-      if (selectedRating > 0 && hotel.rating < selectedRating) {
+      if (selectedRating > 0 && Math.floor(Number(hotel.rating)) !== selectedRating) {
         return false;
       }
 
       // Filter by price range
-      const lowestRoomPrice = hotel.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), hotel.roomTypes?.[0])?.pricePerNight || 0;
+      const lowestRoomPrice =
+        hotel.roomTypes?.reduce(
+          (min, room) => (room.pricePerNight < min.pricePerNight ? room : min),
+          hotel.roomTypes?.[0],
+        )?.pricePerNight || 0;
 
       if (minPrice && lowestRoomPrice < minPrice) return false;
       if (maxPrice && lowestRoomPrice > maxPrice) return false;
@@ -48,8 +54,12 @@ function HotelSearchResults({ filters }) {
 
   const sortHotels = (hotels) => {
     return [...hotels].sort((a, b) => {
-      const aLowestPrice = a.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), a.roomTypes?.[0])?.pricePerNight || 0;
-      const bLowestPrice = b.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), b.roomTypes?.[0])?.pricePerNight || 0;
+      const aLowestPrice =
+        a.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), a.roomTypes?.[0])
+          ?.pricePerNight || 0;
+      const bLowestPrice =
+        b.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), b.roomTypes?.[0])
+          ?.pricePerNight || 0;
 
       switch (sortBy) {
         case "price-low":
@@ -153,7 +163,11 @@ function HotelSearchResults({ filters }) {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          {destination ? <h1 className="text-2xl font-bold">Hotels with Destination {destination}</h1> : <h1 className="text-2xl font-bold">All Hotels </h1>}
+          {destination ? (
+            <h1 className="text-2xl font-bold">Hotels with Destination {destination}</h1>
+          ) : (
+            <h1 className="text-2xl font-bold">All Hotels </h1>
+          )}
           <p className="text-muted-foreground">Showing {filterHotels(hotels).length} properties</p>
         </div>
         <div className="flex items-center gap-2">
@@ -171,21 +185,27 @@ function HotelSearchResults({ filters }) {
           </Select>
         </div>
       </div>
+
       <div className="space-y-4">
         {sortHotels(filterHotels(hotels)).map((hotel) => {
-          const firstRoom = hotel.roomTypes?.[0];
-          const originalPrice = firstRoom?.pricePerNight * 1.2; // Example markup for original price
-          const lowestRoom = hotel.roomTypes?.reduce((min, room) => (room.pricePerNight < min.pricePerNight ? room : min), hotel.roomTypes?.[0]);
+          // const firstRoom = hotel.roomTypes?.[0];
+          // const originalPrice = firstRoom?.pricePerNight * 1.2; // Example markup for original price
+          const lowestRoom = hotel.roomTypes?.reduce(
+            (min, room) => (room.pricePerNight < min.pricePerNight ? room : min),
+            hotel.roomTypes?.[0],
+          );
 
           return (
             <Card key={hotel.id} className="mr-4 overflow-hidden">
               <div className="flex h-full flex-col md:flex-row">
-                {/* IMAGE SECTION */}
                 <div className="relative h-60 flex-shrink-0 md:h-64 md:w-1/3">
-                  <img src={hotel.images?.[0] || "/placeholder.svg"} alt={hotel.name} className="h-full w-full object-cover" />
+                  <img
+                    src={hotel.images?.[0] || "/placeholder.svg"}
+                    alt={hotel.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
-                {/* CONTENT SECTION */}
                 <div className="flex flex-1 flex-col justify-between p-6">
                   <div className="flex flex-col justify-between gap-4 md:flex-row">
                     <div className="space-y-2">
@@ -197,7 +217,10 @@ function HotelSearchResults({ filters }) {
 
                       <div className="mt-4 flex flex-wrap gap-2">
                         {hotel.amenities.map((amenity) => (
-                          <div key={amenity} className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-xs">
+                          <div
+                            key={amenity}
+                            className="bg-muted flex items-center gap-1 rounded-full px-2 py-1 text-xs"
+                          >
                             {getAmenityIcon(amenity)}
                             <span>{amenity}</span>
                           </div>
@@ -205,19 +228,26 @@ function HotelSearchResults({ filters }) {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end justify-between">
+                    <div className="flex flex-col items-end justify-between gap-4">
                       <div className="bg-primary/10 flex items-center gap-1 rounded px-2 py-1">
                         <span className="font-semibold">{hotel.rating}</span>
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-muted-foreground w-15 text-sm">({hotel.roomTypes?.length || 0} rooms)</span>
+                        <span className="text-muted-foreground w-15 text-sm">
+                          ({hotel.roomTypes?.length || 0} rooms)
+                        </span>
                       </div>
 
-                      <div className="mt-4 text-right md:mt-0">
-                        {originalPrice && originalPrice > lowestRoom?.pricePerNight && <div className="text-muted-foreground text-sm line-through">₹{originalPrice} per night</div>}
-                        <div className="text-2xl font-bold">₹{lowestRoom?.pricePerNight}</div>
-                        <div className="text-muted-foreground text-sm">per night</div>
+                      <div className="text-right md:mt-0">
+                        {/* {originalPrice && originalPrice > lowestRoom?.pricePerNight && <div className="text-muted-foreground text-sm line-through"> ₹{originalPrice} per night</div>} */}
+                        <span className="text-muted-foreground text-sm">Starting from </span>
+                        <p className="text-2xl font-bold">₹{lowestRoom?.pricePerNight}</p>
+                        <p className="text-muted-foreground text-sm">per night</p>
                         <Button asChild className="mt-2 hover:bg-blue-700" variant="primary">
-                          <Link to={`/hotels/${hotel.id}`}>View Deal</Link>
+                          <Link
+                            to={`/hotels/${hotel.id}?destination=${encodeURIComponent(destination)}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&capacity=${capacity}`}
+                          >
+                            View Deal
+                          </Link>
                         </Button>
                       </div>
                     </div>

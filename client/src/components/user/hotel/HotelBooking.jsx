@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,19 +13,48 @@ import api from "@/axiosConfig";
 import toast from "react-hot-toast";
 
 const HotelBooking = () => {
-  const { hotelId: roomId } = useParams();
   const navigate = useNavigate();
+  const { hotelId: roomId } = useParams();
+  const [searchParams] = useSearchParams();
   const { currentUser } = useAuth();
   const [roomType, setRoomType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const checkInDate = searchParams.get("checkInDate") || "";
+  const checkOutDate = searchParams.get("checkOutDate") || "";
+  const maxCapacity = searchParams.get("maxCapacity") || "1";
+  const maxGuests = parseInt(maxCapacity, 10);
+
+  const handleAdultsChange = (value) => {
+    const total = value + children;
+    if (total <= maxGuests) {
+      setAdults(value);
+    } else {
+      toast.error(`Total guests cannot exceed ${maxGuests}`);
+    }
+  };
+
+  const handleChildrenChange = (value) => {
+    const total = adults + value;
+    if (total <= maxGuests) {
+      setChildren(value);
+    } else {
+      toast.error(`Total guests cannot exceed ${maxGuests}`);
+    }
+  };
+
+  const parseDate = (dateStr, fallback) => {
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? fallback : parsed;
+  };
+
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const [checkIn, setCheckIn] = useState(today);
-  const [checkOut, setCheckOut] = useState(tomorrow);
+  const [checkIn, setCheckIn] = useState(() => parseDate(checkInDate, today));
+  const [checkOut, setCheckOut] = useState(() => parseDate(checkOutDate, tomorrow));
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
 
@@ -34,8 +63,8 @@ const HotelBooking = () => {
     lastName: currentUser?.fullName?.split(" ")[1] || "",
     email: currentUser?.email || "",
     phone: currentUser?.phoneNumber || "",
-    checkIn: format(today, "yyyy-MM-dd"),
-    checkOut: format(tomorrow, "yyyy-MM-dd"),
+    checkIn: format(checkInDate, "yyyy-MM-dd") || format(today, "yyyy-MM-dd"),
+    checkOut: format(checkOutDate, "yyyy-MM-dd") || format(tomorrow, "yyyy-MM-dd"),
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,7 +145,7 @@ const HotelBooking = () => {
       toast.success("Hotel booked successfully.");
       console.log(response);
 
-      navigate(`/booking/confirmation/hotel/${roomId}`, {
+      navigate(`/booking/confirmation/hotel/${response.data.data.id}`, {
         state: {
           bookingDetails: {
             ...bookingDetails,
@@ -167,13 +196,25 @@ const HotelBooking = () => {
                     <Label htmlFor="firstName" className="mb-1 ml-1">
                       First Name
                     </Label>
-                    <Input id="firstName" name="firstName" value={bookingDetails.firstName} onChange={handleInputChange} required />
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={bookingDetails.firstName}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                   <div>
                     <Label htmlFor="lastName" className="mb-1 ml-1">
                       Last Name
                     </Label>
-                    <Input id="lastName" name="lastName" value={bookingDetails.lastName} onChange={handleInputChange} required />
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={bookingDetails.lastName}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                 </div>
 
@@ -182,13 +223,27 @@ const HotelBooking = () => {
                     <Label htmlFor="email" className="mb-1 ml-1">
                       Email
                     </Label>
-                    <Input type="email" id="email" name="email" value={bookingDetails.email} onChange={handleInputChange} required />
+                    <Input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={bookingDetails.email}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                   <div>
                     <Label htmlFor="phone" className="mb-1 ml-1">
                       Phone Number
                     </Label>
-                    <Input type="tel" id="phone" name="phone" value={bookingDetails.phone} onChange={handleInputChange} required />
+                    <Input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={bookingDetails.phone}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -210,7 +265,13 @@ const HotelBooking = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={checkIn} onSelect={handleCheckInChange} initialFocus disabled={(date) => date < new Date()} />
+                        <Calendar
+                          mode="single"
+                          selected={checkIn}
+                          onSelect={handleCheckInChange}
+                          initialFocus
+                          disabled={(date) => date < new Date()}
+                        />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -225,7 +286,13 @@ const HotelBooking = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={checkOut} onSelect={handleCheckOutChange} initialFocus disabled={(date) => date < new Date() || (checkIn ? date <= checkIn : false)} />
+                        <Calendar
+                          mode="single"
+                          selected={checkOut}
+                          onSelect={handleCheckOutChange}
+                          initialFocus
+                          disabled={(date) => date < new Date() || (checkIn ? date <= checkIn : false)}
+                        />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -237,13 +304,26 @@ const HotelBooking = () => {
                       <Label htmlFor="adults" className="mb-1 ml-1">
                         Number of Adults
                       </Label>
-                      <Input type="number" id="adults" min="1" value={adults} onChange={(e) => setAdults(Number(e.target.value))} required />
+                      <Input
+                        type="number"
+                        id="adults"
+                        min="1"
+                        value={adults}
+                        onChange={(e) => handleAdultsChange(parseInt(e.target.value, 10))}
+                        required
+                      />
                     </div>
                     <div>
                       <Label htmlFor="children" className="mb-1 ml-1">
                         Number of Children
                       </Label>
-                      <Input type="number" id="children" min="0" value={children} onChange={(e) => setChildren(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        id="children"
+                        min="0"
+                        value={children}
+                        onChange={(e) => handleChildrenChange(parseInt(e.target.value, 10))}
+                      />
                     </div>
                   </div>
                 </div>
@@ -255,22 +335,44 @@ const HotelBooking = () => {
             </Card>
           </form>
 
-          <Card>
+          <Card className="pt-4 shadow-lg">
             <CardHeader>
-              <CardTitle className="mt-4 text-xl font-bold">Booking Summary</CardTitle>
+              <CardTitle className="text-xl font-bold">Booking Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <img src={roomType?.images?.[0] || "/fallback-image.jpg"} alt={roomType.name} className="h-48 w-full rounded object-cover" />
+            <CardContent className="space-y-4">
+              <img
+                src={roomType?.images?.[0] || "/fallback-image.jpg"}
+                alt={roomType.name}
+                className="h-48 w-full rounded-lg object-cover"
+              />
+
               <div>
                 <h3 className="text-lg font-semibold">{roomType.name}</h3>
-                <p className="text-gray-500">{roomType.hotelName}</p>
+                <p className="text-sm text-gray-500">{roomType.hotelName}</p>
               </div>
-              <div className="space-y-1 text-sm text-gray-700">
-                <p className="text-md font-semibold">Check-in: {bookingDetails.checkIn}</p>
-                <p className="text-md font-semibold">Check-out: {bookingDetails.checkOut}</p>
-                <p className="text-md font-semibold">Guests: {adults + children}</p>
-                <p className="text-md font-semibold">Nights: {calculateNights()}</p>
-                <p className="text-md font-semibold">Price:₹ {calculateTotal()}</p>
+
+              <div className="space-y-2 border-t pt-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-in:</span>
+                  <span className="font-medium">{bookingDetails.checkIn}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-out:</span>
+                  <span className="font-medium">{bookingDetails.checkOut}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Guests:</span>
+                  <span className="font-medium">{adults + children}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Nights:</span>
+                  <span className="font-medium">{calculateNights()}</span>
+                </div>
+              </div>
+
+              <div className="text-md flex justify-between border-t pt-4 font-semibold">
+                <span>Total Price:</span>
+                <span>₹ {calculateTotal()}</span>
               </div>
             </CardContent>
           </Card>

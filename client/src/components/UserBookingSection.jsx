@@ -36,32 +36,53 @@ const flightBookings = [
 export function UserBookingSection() {
   const [hotelBookings, setHotelBookings] = useState([]);
   // const [flightBookings, setFlightBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [fetchLoading, setFetchLoading] = useState(true);
 
   useEffect(() => {
     const fetchHotelBookings = async () => {
       try {
-        setLoading(true);
+        setFetchLoading(true);
         const res = await api.get("/api/users/bookings/hotels");
         setHotelBookings(res.data.data || []);
       } catch (error) {
         console.error("Failed to fetch hotel bookings", error);
         toast.error("Failed to load hotel bookings");
       } finally {
-        setLoading(false);
+        setFetchLoading(false);
       }
     };
 
     fetchHotelBookings();
   }, []);
 
-  console.log(hotelBookings);
+  const handleHotelDelete = async (bookingId) => {
+    try {
+      await api.delete(`/api/users/bookings/hotel/${bookingId}`);
+      toast.success("Hotel booking deleted");
+      setHotelBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    } catch (error) {
+      console.error("Delete failed", error);
+      toast.error("Failed to delete booking");
+    }
+  };
+
+  if (fetchLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2"></div>
+        <span className="ml-4">Loading hotel data...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-4 space-y-6 md:mx-0">
       <Card className="mx-4 space-y-4">
         <CardHeader>
           <CardTitle className="pt-4 pb-1 text-2xl font-bold tracking-tight">All Hotel Booking</CardTitle>
-          <CardDescription className="text-muted-foreground">Manage your hotel booking,or edit existing ones (coming soon).</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            Manage your hotel booking,or edit existing ones (coming soon).
+          </CardDescription>
         </CardHeader>
         <CardContent className="mb-6 space-y-4">
           <Tabs defaultValue="hotels" className="w-full">
@@ -69,11 +90,20 @@ export function UserBookingSection() {
               <TabsTrigger value="hotels">Hotels</TabsTrigger>
               <TabsTrigger value="flights">Flights</TabsTrigger>
             </TabsList>
-
             <TabsContent value="hotels" className="space-y-4">
-              {hotelBookings.map((booking) => (
-                <HotelBookedCard key={booking.id} booking={booking} />
-              ))}
+              {hotelBookings.length === 0 ? (
+                <Card>
+                  <CardContent className="py-6">
+                    <div className="text-muted-foreground text-center">
+                      <p>No hotels booked yet.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                hotelBookings.map((booking) => (
+                  <HotelBookedCard key={booking.id} booking={booking} onDelete={() => handleHotelDelete(booking.id)} />
+                ))
+              )}
             </TabsContent>
 
             <TabsContent value="flights" className="space-y-4">

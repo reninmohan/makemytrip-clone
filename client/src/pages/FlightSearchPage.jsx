@@ -16,7 +16,22 @@ export default function FlightSearchPage() {
       <main className="flex-1">
         <div className="container mx-auto py-8">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
-            <FlightFilters priceRange={priceRange} setPriceRange={setPriceRange} minPrice={minPrice} setMinPrice={setMinPrice} maxPrice={maxPrice} setMaxPrice={setMaxPrice} stops={stops} setStops={setStops} departureTimes={departureTimes} setDepartureTimes={setDepartureTimes} arrivalTimes={arrivalTimes} setArrivalTimes={setArrivalTimes} selectedAirlines={selectedAirlines} setSelectedAirlines={setSelectedAirlines} />
+            <FlightFilters
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
+              minPrice={minPrice}
+              setMinPrice={setMinPrice}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              stops={stops}
+              setStops={setStops}
+              departureTimes={departureTimes}
+              setDepartureTimes={setDepartureTimes}
+              arrivalTimes={arrivalTimes}
+              setArrivalTimes={setArrivalTimes}
+              selectedAirlines={selectedAirlines}
+              setSelectedAirlines={setSelectedAirlines}
+            />
             <FlightSearchResults
               filters={{
                 priceRange,

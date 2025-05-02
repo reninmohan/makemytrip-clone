@@ -20,8 +20,6 @@ function HotelSearch() {
   const handleSearch = (e) => {
     e.preventDefault();
 
-    console.log(destination, checkIn, checkOut, guests, rooms);
-
     const checkInStr = checkIn ? format(checkIn, "yyyy-MM-dd") : "";
     const checkOutStr = checkOut ? format(checkOut, "yyyy-MM-dd") : "";
 
@@ -32,7 +30,9 @@ function HotelSearch() {
       return alert("Check-out date must be after check-in date.");
     }
 
-    navigate(`/hotels/search?destination=${encodeURIComponent(destination)}&checkInDate=${checkInStr}&checkOutDate=${checkOutStr}&capacity=${guests}&rooms=${rooms}`);
+    navigate(
+      `/hotels/search?destination=${encodeURIComponent(destination)}&checkInDate=${checkInStr}&checkOutDate=${checkOutStr}&capacity=${guests}&rooms=${rooms}`,
+    );
   };
 
   return (
@@ -42,7 +42,14 @@ function HotelSearch() {
           <Label htmlFor="destination">Destination</Label>
           <div className="relative">
             <MapPin className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input id="destination" placeholder="Where are you going?" className="pl-9" value={destination} onChange={(e) => setDestination(e.target.value)} required />
+            <Input
+              id="destination"
+              placeholder="Where are you going?"
+              className="pl-9"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              required
+            />
           </div>
         </div>
 
@@ -57,7 +64,13 @@ function HotelSearch() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus disabled={(date) => date < new Date()} />
+                <Calendar
+                  mode="single"
+                  selected={checkIn}
+                  onSelect={setCheckIn}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
               </PopoverContent>
             </Popover>
           </div>
@@ -72,7 +85,13 @@ function HotelSearch() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus disabled={(date) => date < new Date() || (checkIn ? date <= checkIn : false)} />
+                <Calendar
+                  mode="single"
+                  selected={checkOut}
+                  onSelect={setCheckOut}
+                  initialFocus
+                  disabled={(date) => date < new Date() || (checkIn ? date <= checkIn : false)}
+                />
               </PopoverContent>
             </Popover>
           </div>

@@ -109,9 +109,7 @@ export const getAllHotelsService = async () => {
       createdAt: hotel?.createdAt,
     };
   };
-
   const allHotelsDetails = await Hotel.find({});
-
   return allHotelsDetails.map((booking) => toAllHotelResponse(booking));
 };
 
@@ -136,21 +134,17 @@ export const getHotelService = async (req: RequestWithUser): Promise<IHotelRespo
 };
 
 //Fetch all hotel with filteration.
-export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number; totalPages: number; currentPage: number }> => {
-  const { destination, amenities, minPrice, maxPrice, capacity, rating, page = "1", limit = "10", checkInDate, checkOutDate } = req.query;
+export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ hotels: IHotelResponse[]; totalHotels: number }> => {
+  const { destination, amenities, minPrice, maxPrice, capacity, rating, checkInDate, checkOutDate } = req.query;
 
   const query: any = {};
 
   if (destination) {
     const regex = new RegExp(destination as string, "i");
     query.$or = [{ "location.city": { $regex: regex } }, { "location.state": { $regex: regex } }, { "location.country": { $regex: regex } }];
-  } else {
-    if (req.query.city) query["location.city"] = { $regex: new RegExp(req.query.city as string, "i") };
-    if (req.query.state) query["location.state"] = { $regex: new RegExp(req.query.state as string, "i") };
-    if (req.query.country) query["location.country"] = { $regex: new RegExp(req.query.country as string, "i") };
   }
 
-  if (rating) query.rating = { $lte: Number(rating) };
+  if (rating) query.rating = { $gte: Number(rating) };
 
   if (amenities) {
     const amenitiesArray = Array.isArray(amenities) ? amenities : (amenities as string).split(",");
@@ -160,57 +154,80 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
   // Initial find with population
   const allHotels = await Hotel.find(query).populate("roomTypes");
 
-  let filteredHotels = allHotels;
+  const finalHotels = [];
 
-  if (minPrice || maxPrice || capacity) {
-    // Filter by price and guest capacity inside roomTypes
-    filteredHotels = allHotels.filter((hotel) =>
-      hotel.roomTypes.some((room: any) => {
-        const matchesPrice = (minPrice ? room.pricePerNight >= Number(minPrice) : true) && (maxPrice ? room.pricePerNight <= Number(maxPrice) : true);
+  for (const hotel of allHotels) {
+    const availableRoomTypes = [];
 
-        const matchesGuests = capacity ? room.capacity >= Number(capacity) : true;
+    for (const room of hotel.roomTypes) {
+      // Apply price & guest filters
+      const matchesPrice = (!minPrice || room.pricePerNight >= Number(minPrice)) && (!maxPrice || room.pricePerNight <= Number(maxPrice));
+      const matchesGuests = !capacity || room.capacity >= Number(capacity);
 
-        return matchesPrice && matchesGuests;
-      }),
-    );
-  }
+      if (!matchesPrice || !matchesGuests) continue;
 
-  if (checkInDate && checkOutDate) {
-    const conflictingBookings = await HotelBooking.find({
-      $or: [
-        {
+      // If dates are provided, check room availability
+      if (checkInDate && checkOutDate) {
+        const conflictingBookings = await HotelBooking.find({
+          roomType: room._id,
           checkInDate: { $lt: new Date(checkOutDate as string) },
           checkOutDate: { $gt: new Date(checkInDate as string) },
-        },
-      ],
-    }).select("roomType");
+        });
 
-    const unavailableRoomTypeIds = conflictingBookings.map((b) => b.roomType.toString());
-    filteredHotels = filteredHotels.filter((hotel) => hotel.roomTypes.some((room: any) => !unavailableRoomTypeIds.includes(room._id.toString())));
+        const bookedCount = conflictingBookings.length;
+        const availableCount = room.countInStock - bookedCount;
+
+        if (availableCount > 0) {
+          availableRoomTypes.push(room);
+        }
+      } else {
+        // No date filter — assume all rooms are available
+        availableRoomTypes.push(room);
+      }
+    }
+
+    // Only include hotel if it has at least one available room
+    if (availableRoomTypes.length > 0) {
+      hotel.roomTypes = availableRoomTypes;
+      finalHotels.push(hotel);
+    }
   }
-
-  // Pagination
-  const skip = (Number(page) - 1) * Number(limit);
-  const paginatedHotels = filteredHotels.slice(skip, skip + Number(limit));
-  const totalHotels = filteredHotels.length;
-  const totalPages = Math.ceil(totalHotels / Number(limit));
-
-  if (!filteredHotels.length) {
-    return {
-      hotels: [],
-      totalHotels: 0,
-      totalPages: 0,
-      currentPage: Number(page),
-    };
-  }
-
   return {
-    hotels: paginatedHotels.map((hotel) => toHotelResponse(hotel)),
-    totalHotels: totalHotels,
-    totalPages,
-    currentPage: Number(page),
+    hotels: finalHotels.map((hotel) => toHotelResponse(hotel)),
+    totalHotels: finalHotels.length,
   };
 };
+// let filteredHotels = allHotels;
+
+// // Filter by price and guest capacity inside roomTypes
+// if (minPrice || maxPrice || capacity) {
+//   filteredHotels = allHotels.filter((hotel) =>
+//     hotel.roomTypes.some((room: any) => {
+//       const matchesPrice = (minPrice ? room.pricePerNight >= Number(minPrice) : true) && (maxPrice ? room.pricePerNight <= Number(maxPrice) : true);
+//       const matchesGuests = capacity ? room.capacity >= Number(capacity) : true;
+//       return matchesPrice && matchesGuests;
+//     }),
+//   );
+// }
+
+// if (checkInDate && checkOutDate) {
+//   const conflictingBookings = await HotelBooking.find({
+//     $or: [
+//       {
+//         checkInDate: { $lt: new Date(checkOutDate as string) },
+//         checkOutDate: { $gt: new Date(checkInDate as string) },
+//       },
+//     ],
+//   }).select("roomType");
+
+//   const unavailableRoomTypeIds = conflictingBookings.map((b) => b.roomType.toString());
+//   filteredHotels = filteredHotels.filter((hotel) => hotel.roomTypes.some((room: any) => !unavailableRoomTypeIds.includes(room._id.toString())));
+// }
+// const totalHotels = filteredHotels.length;
+// return {
+//   hotels: filteredHotels.map((hotel) => toHotelResponse(hotel)),
+//   totalHotels: totalHotels,
+// };
 
 export const fetchAllRoomsByHotelService = async (req: Request): Promise<IRoomTypeResponse[]> => {
   const { hotelId } = req.params;
@@ -261,167 +278,3 @@ export const checkHotelAvailabilityService = async (req: RequestWithUser): Promi
 
   return availableRooms;
 };
-
-/*
-
-export const filterAndSearchAllFlightsService2 = async (req: Request, res: Response) => {
-  try {
-    // const validationResult = hotelSearchParamsSchema.safeParse(req.query);
-    // console.log(validationResult);
-    // if (!validationResult.success) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid search parameters",
-    //     errors: validationResult.error.errors,
-    //   });
-    // }
-
-    // Use the validated and transformed data
-    const { city, state, country, amenities, rating, checkInDate, checkOutDate, priceRange, guests, page = "1", limit = "10" } = req.body;
-
-    // Build MongoDB query
-    const query: any = {};
-
-    // Location filters - using exact matches but case insensitive
-    if (city) query["location.city"] = city;
-    if (state) query["location.state"] = state;
-    if (country) query["location.country"] = country;
-
-    // Rating filter
-    if (rating) query.rating = { $gte: Number(rating) };
-
-    // Amenities filter
-    if (amenities && amenities.length > 0) {
-      query.amenities = { $all: amenities };
-    }
-
-    // Pagination setup
-    const pageNum = Number(page) || 1;
-    const limitNum = Number(limit) || 10;
-    const skip = (pageNum - 1) * limitNum;
-
-    // First, get all hotels that match basic criteria
-    const allHotels = await Hotel.find(query).populate("roomTypes").skip(skip).limit(limitNum);
-
-    // const totalCount = await Hotel.countDocuments(query);
-
-    // For price range and capacity filters, we need to filter after population
-    let filteredHotels = allHotels;
-
-    // Filter by price range and guest capacity if specified
-    if (priceRange?.min || priceRange?.max || guests) {
-      filteredHotels = allHotels.filter((hotel) =>
-        hotel.roomTypes.some((room: any) => {
-          // Price range filter
-          const matchesPrice = (priceRange?.min ? room.pricePerNight >= priceRange.min : true) && (priceRange?.max ? room.pricePerNight <= priceRange.max : true);
-
-          // Guest capacity filter
-          const matchesCapacity = guests ? room.capacity >= guests.adults + (guests.children || 0) : true;
-
-          return matchesPrice && matchesCapacity;
-        }),
-      );
-    }
-
-    // If dates are provided, check for availability
-    if (checkInDate && checkOutDate) {
-      // Find conflicting bookings in the date range
-      const conflictingBookings = await HotelBooking.find({
-        $or: [
-          {
-            // Bookings that overlap with requested dates
-            checkInDate: { $lt: checkOutDate },
-            checkOutDate: { $gt: checkInDate },
-          },
-        ],
-      }).select("roomType hotel");
-
-      // Create lookup maps for quick reference
-      const bookedRooms = new Map();
-      conflictingBookings.forEach((booking) => {
-        const key = `${booking.hotel.toString()}-${booking.roomType.toString()}`;
-        const count = bookedRooms.get(key) || 0;
-        bookedRooms.set(key, count + 1);
-      });
-
-      // Filter out hotels with no available rooms
-      filteredHotels = filteredHotels.filter((hotel) => {
-        return hotel.roomTypes.some((room: any) => {
-          const key = `${(hotel._id as string).toString()}-${room._id.toString()}`;
-          const bookedCount = bookedRooms.get(key) || 0;
-          return bookedCount < room.countInStock; // Still have rooms available
-        });
-      });
-    }
-
-    // Calculate pagination details based on filtered results
-    const totalHotels = filteredHotels.length;
-    const totalPages = Math.ceil(totalHotels / limitNum);
-
-    if (filteredHotels.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No hotels found matching your criteria",
-        data: {
-          hotels: [],
-          pagination: {
-            totalHotels: 0,
-            totalPages: 0,
-            currentPage: pageNum,
-            limit: limitNum,
-          },
-        },
-      });
-    }
-
-    // Format response
-    return res.status(200).json({
-      success: true,
-      message: "Hotels fetched successfully",
-      data: {
-        hotels: filteredHotels.map((hotel) => toHotelResponse1(hotel)),
-        pagination: {
-          totalHotels,
-          totalPages,
-          currentPage: pageNum,
-          limit: limitNum,
-        },
-      },
-    });
-  } catch (error) {
-    console.error("Search hotels error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while searching for hotels",
-      error: process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
-    });
-  }
-};
-
-// Helper function for formatting hotel response
-
-const toHotelResponse1 = (hotel: any): IHotelResponse => {
-  return {
-    id: hotel._id.toString(),
-    name: hotel.name,
-    description: hotel.description,
-    location: hotel.location,
-    images: hotel.images,
-    rating: hotel.rating,
-    amenities: hotel.amenities,
-    roomTypes: Array.isArray(hotel.roomTypes)
-      ? hotel.roomTypes.map((room: any) => ({
-          id: room._id.toString(),
-          name: room.name,
-          description: room.description,
-          capacity: room.capacity,
-          pricePerNight: room.pricePerNight,
-          amenities: room.amenities,
-          images: room.images,
-          bedType: room.bedType,
-          countInStock: room.countInStock,
-        }))
-      : [],
-  };
-};
-*/
