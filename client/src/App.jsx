@@ -17,8 +17,11 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 import HotelDetails from "./components/user/hotel/HotelDetails.jsx";
 import HotelBooking from "./components/user/hotel/HotelBooking.jsx";
 import BookingConfirmation from "./components/user/BookingConfirmation.jsx";
-import FlightDetails from "./components/user/flight/FlightDetails.jsx";
+import FlightDetails from "./components/user/flight/FlightBooking.jsx";
 import Homepage from "./pages/Homepage.jsx";
+import FlightBooking from "./components/user/flight/FlightBooking.jsx";
+import HotelRecommended from "./pages/HotelRecommended.jsx";
+import FlightRecommended from "./pages/FlightRecommendedPage.jsx";
 
 function App() {
   return (
@@ -28,11 +31,11 @@ function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="/" index element={<Homepage />} />
-            <Route path="/flights" element={<FlightSearchPage />} />
+            <Route path="/flights" element={<FlightRecommended />} />
             <Route path="/flights/search" element={<FlightSearchPage />} />
             <Route path="/flights/:flightId" element={<FlightDetails />} />
 
-            <Route path="/hotels" element={<HotelSearchPage />} />
+            <Route path="/hotels" element={<HotelRecommended />} />
             <Route path="/hotels/search" element={<HotelSearchPage />} />
             <Route path="/hotels/:hotelId" element={<HotelDetails />} />
 
@@ -42,7 +45,7 @@ function App() {
             {/* Protected routes for booking and profile */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/booking/flight/book/:flightId" element={<p>This is protected booking page for flights</p>} />
+              <Route path="/booking/flight/book/:flightId" element={<FlightBooking />} />
               <Route path="/booking/hotel/book/:hotelId" element={<HotelBooking />} />
               <Route path="/booking/confirmation/:type/:id" element={<BookingConfirmation />} />
             </Route>

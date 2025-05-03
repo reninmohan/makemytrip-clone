@@ -3,7 +3,7 @@ import { authUser } from "../middlewares/auth.middleware.js";
 import { fetchProfile, updateProfile, updateProfilePassword } from "../controllers/user.controller.js";
 import { validateInput } from "../middlewares/validateInput.middleware.js";
 import { userPasswordChangeSchema, userProfileUpdateSchema } from "../schemas/user.schema.js";
-import { deleteSpecificUserHotelBooking, fetchAllUserHotelBooking, fetchSpecificUserHotelBooking } from "../controllers/booking.controller.js";
+import { deleteSpecificUserFlightBooking, deleteSpecificUserHotelBooking, fetchAllUserFlightBooking, fetchAllUserHotelBooking, fetchSpecificUserHotelBooking } from "../controllers/booking.controller.js";
 const userRouter = express.Router();
 
 //All are user routes are protected.
@@ -30,13 +30,13 @@ userRouter.get("/bookings/hotel/:bookingId", authUser, fetchSpecificUserHotelBoo
 userRouter.delete("/bookings/hotel/:bookingId", authUser, deleteSpecificUserHotelBooking);
 
 //For getting all flight booking
-userRouter.get("/bookings/flights", authUser);
+userRouter.get("/bookings/flights", authUser, fetchAllUserFlightBooking);
 
 //For getting all flight booking
 userRouter.get("/bookings/flight/:bookingId", authUser);
 
 //For getting all flight booking
-userRouter.delete("/bookings/flight/:bookingId", authUser);
+userRouter.delete("/bookings/flight/:bookingId", authUser, deleteSpecificUserFlightBooking);
 
 //To
 // userRouter.post("/bookings");

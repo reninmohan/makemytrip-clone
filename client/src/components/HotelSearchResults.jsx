@@ -152,7 +152,7 @@ function HotelSearchResults({ filters }) {
       <Card>
         <CardContent className="py-6">
           <div className="text-muted-foreground text-center">
-            <p>No hotels found with mentioned filters please try change filter.</p>
+            <p>No hotels found with current filters please try change filter.</p>
           </div>
         </CardContent>
       </Card>
@@ -160,7 +160,7 @@ function HotelSearchResults({ filters }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-0">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           {destination ? (

@@ -159,29 +159,30 @@ export interface IFlightResponse extends Omit<IFlight, "airline" | "departureAir
   arrivalAirport: IAirport;
 }
 
-// const data: IFlight = {
-//   flightNumber: "ABC123",
-//   airline: "6809bd1ed067e58b4a8390d4",
-//   departureAirport: "6809dac79cfbe77c0e763c1e",
-//   arrivalAirport: "6809dee90dda94b43a63b544",
-//   departureTime: new Date(2025 - 5 - 11),
-//   arrivalTime: new Date(2025 - 5 - 12),
-//   duration: 57,
-//   price: {
-//     economy: 10,
-//     business: 15,
-//     firstClass: 20,
-//   },
-//   availableSeats: {
-//     economy: 10,
-//     business: 10,
-//     firstClass: 10,
-//   },
-//   isNonStop: true,
-// };
-
 ///////////////////////////////////////////////////////////////////////////////////////
 // Flight booking related schema
+
+export const flightBookingSchema = z.object({
+  user: objectIdSchema,
+  flight: objectIdSchema,
+  seatClass: z.enum(["economy", "business", "firstClass"]).default("economy"),
+  totalPrice: z
+    .number({
+      required_error: "Total price is required",
+      invalid_type_error: "Total price must be a number",
+    })
+    .min(1, "Total price must be greater than 0"),
+  status: z.enum(["pending", "confirmed", "cancelled"]).default("confirmed"),
+  paymentStatus: z.enum(["pending", "paid", "refunded"]).default("pending"),
+  bookingDate: z.date().default(() => new Date()),
+});
+
+export const flightBookingRequestSchema = z.object({
+  flight: objectIdSchema,
+  seatClass: z.enum(["economy", "business", "firstClass"]).default("economy"),
+});
+
+export type ICreateFlightBooking = z.infer<typeof flightBookingRequestSchema>;
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Fligth searching schema

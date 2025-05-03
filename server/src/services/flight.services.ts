@@ -1,12 +1,9 @@
-/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Request, Response } from "express";
+import { Request } from "express";
 import { Airline, Airport, Flight, IAirlineDocument, IAirportDocument, IFlightDocument } from "../db/models/flight.model.js";
 import { RequestWithUserAndBody } from "../middlewares/auth.middleware.js";
-import { IAirline, IAirlineResponse, IAirport, IAirportResponse, IFlight, IFlightResponse, searchFlightSchema } from "../schemas/flight.schema.js";
+import { IAirline, IAirlineResponse, IAirport, IAirportResponse, IFlight, IFlightResponse } from "../schemas/flight.schema.js";
 import { HttpError } from "../utils/ErrorResponse.utils.js";
-import mongoose from "mongoose";
-import { capitalizeFirstLetter } from "../utils/capatilzeLetter.util.js";
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Airline related services
@@ -243,7 +240,7 @@ export const getAllFlightService = async (): Promise<IFlightResponse[]> => {
 
 export const getFlightService = async (req: Request): Promise<IFlightResponse> => {
   const { flightId } = req.params;
-  const flight = await Flight.findById(flightId);
+  const flight = await Flight.findById(flightId).populate(["airline", "departureAirport", "arrivalAirport"]);
 
   if (!flight) {
     throw new HttpError(404, "Mentioned flightId doesn't exist in db or already deleted.");
@@ -252,260 +249,181 @@ export const getFlightService = async (req: Request): Promise<IFlightResponse> =
   return toFlightResponse(flight);
 };
 /////////////////////////////////////////////////////////////////////////////////////////////
-// Flight search related for user
-/*
 
-export const filterAndSearchAllFlightsService = async (req: Request): Promise<{ flights: IFlightResponse[]; totalFlights: number; totalPages: number }> => {
-  const { airline, from, to, nonstop, date, seatClass, limit = "10" } = req.query;
+export const filterAndSearchAllFlightsService = async (req: Request) => {
+  const { from, to, departDate, arrivalTimeRange, departTimeRange, minPrice, maxPrice, seatClass, isNonStop, airline } = req.query;
 
-  if (!from || !to) {
-    throw new HttpError(400, "Both 'from' and 'to' query parameters are required.");
+  const departTimeRanges = Array.isArray(departTimeRange) ? departTimeRange : departTimeRange ? [departTimeRange] : [];
+  const arrivalTimeRanges = Array.isArray(arrivalTimeRange) ? arrivalTimeRange : arrivalTimeRange ? [arrivalTimeRange] : [];
+  const airlineValues = Array.isArray(airline) ? airline : airline ? [airline] : [];
+
+  let departureAirportIds: any[] = [];
+
+  if (from) {
+    const departureAirports = await Airport.find({
+      $or: [{ city: { $regex: new RegExp(from as string, "i") } }, { country: { $regex: new RegExp(from as string, "i") } }, { name: { $regex: new RegExp(from as string, "i") } }],
+    }).select("_id");
+
+    departureAirportIds = departureAirports.map((airport) => airport._id);
+
+    if (departureAirportIds.length === 0) {
+      return { count: 0, flights: [] };
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const query: any = {};
+  let arrivalAirportIds: any[] = [];
 
-  if (airline) query["airline"] = airline;
-  if (from) query["departureAirport"] = from;
-  if (to) query["arrivalAirport"] = to;
-  if (nonstop === "true") query["isNonStop"] = true;
-  if (date) {
-    const start = new Date(date as string);
-    const end = new Date(date as string);
-    end.setDate(end.getDate() + 1);
-    query["departureTime"] = { $gte: start, $lt: end };
+  if (to) {
+    const arrivalAirports = await Airport.find({
+      $or: [{ city: { $regex: new RegExp(to as string, "i") } }, { country: { $regex: new RegExp(to as string, "i") } }, { name: { $regex: new RegExp(to as string, "i") } }],
+    }).select("_id");
+
+    arrivalAirportIds = arrivalAirports.map((airport) => airport._id);
+
+    if (arrivalAirportIds.length === 0) {
+      return { count: 0, flights: [] };
+    }
   }
 
-  const flights = await Flight.find(query).populate(["airline", "departureAirport", "arrivalAirport"]);
+  const query: Record<string, any> = {};
 
-  const totalFlights = flights.length;
-  const totalPages = Math.ceil(totalFlights / Number(limit));
-
-  return {
-    flights: flights.map((flight) => toFlightResponse(flight)),
-    totalFlights,
-    totalPages,
-  };
-  */
-/*
-
-  const totalFlights = flights.length;
-
-  if (!flights || flights.length === 0) {
-    return {
-      flights: [],
-      totalFlights: 0,
-      totalPages: 0,
-      currentPage: Number(page),
-    };
+  if (departureAirportIds.length > 0) {
+    query.departureAirport = { $in: departureAirportIds };
   }
 
-  // Pagination
-  const skip = (Number(page) - 1) * Number(limit);
-  const paginatedHotels = filteredHotels.slice(skip, skip + Number(limit));
-  const totalHotels = filteredHotels.length;
-  const totalPages = Math.ceil(totalHotels / Number(limit));
-
-  if (!filteredHotels.length) {
-    return {
-      hotels: [],
-      totalHotels: 0,
-      totalPages: 0,
-      currentPage: Number(page),
-    };
+  if (arrivalAirportIds.length > 0) {
+    query.arrivalAirport = { $in: arrivalAirportIds };
   }
 
-  return {
-    hotels: paginatedHotels.map((hotel) => toHotelResponse(hotel)),
-    totalHotels: totalHotels,
-    totalPages,
-    currentPage: Number(page),
-  };
-  */
-// };
+  if (airlineValues.length > 0) {
+    const airlineRegexes = airlineValues.map((val) => ({
+      $or: [{ name: { $regex: new RegExp(val as string, "i") } }, { code: { $regex: new RegExp(val as string, "i") } }],
+    }));
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
+    const airlines = await Airline.find({ $or: airlineRegexes }).select("_id");
+    const airlineIds = airlines.map((a) => a._id);
 
-// Flight search related service
+    if (airlineIds.length === 0) {
+      return { count: 0, flights: [] };
+    }
 
-export const filterAndSearchAllFlightsService = async (req: Request, res: Response) => {
-  try {
-    // Validate query parameters
-    const validationResult = searchFlightSchema.safeParse(req.query);
+    query.airline = { $in: airlineIds };
+  }
 
-    if (!validationResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid search parameters",
-        errors: validationResult.error.errors,
+  if (departDate && typeof departDate === "string") {
+    const date = new Date(departDate);
+    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    query.departureTime = { $gte: startOfDay, $lte: endOfDay };
+  }
+
+  // Handle departure time range filtering
+  if (departTimeRanges.length > 0) {
+    // Get user's timezone offset in hours
+    const timezoneOffset = new Date().getTimezoneOffset() / 60;
+
+    const departTimeConditions = departTimeRanges
+      .map((range) => {
+        switch (range) {
+          case "before6am":
+            return { $lt: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 6] };
+          case "6amTo12pm":
+            return {
+              $and: [{ $gte: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 6] }, { $lt: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 12] }],
+            };
+          case "12pmTo6pm":
+            return {
+              $and: [{ $gte: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 12] }, { $lt: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 18] }],
+            };
+          case "after6pm":
+            return { $gte: [{ $add: [{ $hour: "$departureTime" }, -timezoneOffset] }, 18] };
+          default:
+            return null;
+        }
+      })
+      .filter(Boolean);
+
+    if (departTimeConditions.length > 0) {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $expr: { $or: departTimeConditions },
       });
     }
-
-    const { from, to, airline, departureDate, minPrice, maxPrice, seatClass, isNonStop, sort, order, page, limit } = validationResult.data;
-
-    // Build filter query
-    const query: any = {};
-
-    // Airport filters (using ObjectId if valid, otherwise try to find by airport code)
-    if (from) {
-      if (mongoose.Types.ObjectId.isValid(from)) {
-        query.departureAirport = from;
-      } else {
-        const airportLookup = await Airport.findOne({ name: capitalizeFirstLetter(from) });
-        if (airportLookup) {
-          query.departureAirport = airportLookup._id;
-        } else {
-          return res.status(404).json({ success: false, message: "Departure airport not found" });
-        }
-      }
-    }
-
-    if (to) {
-      if (mongoose.Types.ObjectId.isValid(to)) {
-        query.arrivalAirport = to;
-      } else {
-        const airportLookup = await Airport.findOne({ name: to.toUpperCase() });
-        if (airportLookup) {
-          query.arrivalAirport = airportLookup._id;
-        } else {
-          return res.status(404).json({ success: false, message: "Arrival airport not found" });
-        }
-      }
-    }
-
-    // Airline filter
-    if (airline) {
-      if (mongoose.Types.ObjectId.isValid(airline)) {
-        query.airline = airline;
-      } else {
-        const airlineLookup = await mongoose.model("Airline").findOne({
-          $or: [{ name: { $regex: airline, $options: "i" } }, { code: airline.toUpperCase() }],
-        });
-        if (airlineLookup) {
-          query.airline = airlineLookup._id;
-        } else {
-          return res.status(404).json({ success: false, message: "Airline not found" });
-        }
-      }
-    }
-
-    // Date filter
-    if (departureDate) {
-      const startDate = new Date(departureDate);
-      startDate.setHours(0, 0, 0, 0);
-
-      const endDate = new Date(departureDate);
-      endDate.setHours(23, 59, 59, 999);
-
-      query.departureTime = { $gte: startDate, $lte: endDate };
-    }
-
-    // Price filter - Check if seats are available in the selected class
-    if (seatClass) {
-      query[`availableSeats.${seatClass}`] = { $gt: 0 };
-
-      if (minPrice !== undefined) {
-        query[`price.${seatClass}`] = { $gte: minPrice };
-      }
-
-      if (maxPrice !== undefined) {
-        if (query[`price.${seatClass}`]) {
-          query[`price.${seatClass}`].$lte = maxPrice;
-        } else {
-          query[`price.${seatClass}`] = { $lte: maxPrice };
-        }
-      }
-    } else {
-      // If no class is specified, filter by any class pricing
-      if (minPrice !== undefined || maxPrice !== undefined) {
-        const priceQuery: any = {};
-        if (minPrice !== undefined) {
-          priceQuery.$or = [{ "price.economy": { $gte: minPrice } }, { "price.business": { $gte: minPrice } }, { "price.firstClass": { $gte: minPrice } }];
-        }
-
-        if (maxPrice !== undefined) {
-          priceQuery.$or = [{ "price.economy": { $lte: maxPrice } }, { "price.business": { $lte: maxPrice } }, { "price.firstClass": { $lte: maxPrice } }];
-        }
-
-        Object.assign(query, priceQuery);
-      }
-    }
-
-    // Non-stop filter
-    if (isNonStop) {
-      query.isNonStop = isNonStop === "true";
-    }
-
-    // Build sort query
-    let sortQuery: any = {};
-
-    if (sort) {
-      const sortDirection = order === "asc" ? 1 : -1;
-
-      switch (sort) {
-        case "price":
-          // Sort by the requested class, or lowest price if no class specified
-          if (seatClass) {
-            sortQuery[`price.${seatClass}`] = sortDirection;
-          } else {
-            // Sort by lowest price across all classes
-            sortQuery["price.economy"] = sortDirection;
-          }
-          break;
-        case "duration":
-          sortQuery.duration = sortDirection;
-          break;
-        case "departureTime":
-          sortQuery.departureTime = sortDirection;
-          break;
-        case "arrivalTime":
-          sortQuery.arrivalTime = sortDirection;
-          break;
-        default:
-          // Default sort by departure time
-          sortQuery.departureTime = 1;
-      }
-    } else {
-      // Default sort by departure time
-      sortQuery.departureTime = 1;
-    }
-
-    // Calculate pagination
-    const skip = (page - 1) * limit;
-
-    // Execute query with population
-    const flights = await Flight.find(query).populate("airline", "name code logo").populate("departureAirport", "name code city country").populate("arrivalAirport", "name code city country").sort(sortQuery).skip(skip).limit(limit);
-
-    // Get total count for pagination
-    const totalFlights = await Flight.countDocuments(query);
-    const totalPages = Math.ceil(totalFlights / limit);
-
-    return res.status(200).json({
-      success: true,
-      currentPage: page,
-      totalPages,
-      totalFlights,
-      resultsPerPage: limit,
-      data: flights.map((flight) => ({
-        id: flight._id,
-        flightNumber: flight.flightNumber,
-        airline: flight.airline,
-        departureAirport: flight.departureAirport,
-        arrivalAirport: flight.arrivalAirport,
-        departureTime: flight.departureTime,
-        arrivalTime: flight.arrivalTime,
-        duration: flight.duration,
-        price: flight.price,
-        availableSeats: flight.availableSeats,
-        isNonStop: flight.isNonStop,
-      })),
-    });
-  } catch (error) {
-    console.error("Search flights error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while searching for flights",
-      error: process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
-    });
   }
+
+  // Handle arrival time range filtering
+  if (arrivalTimeRanges.length > 0) {
+    const timezoneOffset = new Date().getTimezoneOffset() / 60;
+
+    const arrivalTimeConditions = arrivalTimeRanges
+      .map((range) => {
+        switch (range) {
+          case "before6am":
+            return {
+              $lt: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 6],
+            };
+          case "6amTo12pm":
+            return {
+              $and: [{ $gte: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 6] }, { $lt: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 12] }],
+            };
+          case "12pmTo6pm":
+            return {
+              $and: [{ $gte: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 12] }, { $lt: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 18] }],
+            };
+          case "after6pm":
+            return {
+              $gte: [{ $add: [{ $hour: "$arrivalTime" }, -timezoneOffset] }, 18],
+            };
+          default:
+            return null;
+        }
+      })
+      .filter(Boolean);
+
+    if (arrivalTimeConditions.length > 0) {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $expr: { $or: arrivalTimeConditions },
+      });
+    }
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    const priceSchema = await Flight.findOne().select("price");
+    if (priceSchema && typeof priceSchema.price === "object") {
+      if (seatClass) {
+        query[`price.${seatClass}`] = {};
+        if (minPrice !== undefined) query[`price.${seatClass}`].$gte = Number(minPrice);
+        if (maxPrice !== undefined) query[`price.${seatClass}`].$lte = Number(maxPrice);
+      } else {
+        query["price.economy"] = {};
+        if (minPrice !== undefined) query["price.economy"].$gte = Number(minPrice);
+        if (maxPrice !== undefined) query["price.economy"].$lte = Number(maxPrice);
+      }
+    } else {
+      query.price = {};
+      if (minPrice !== undefined) query.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+    }
+  }
+
+  if (isNonStop !== undefined) {
+    query.isNonStop = typeof isNonStop === "string" ? isNonStop === "true" : Boolean(isNonStop);
+  }
+
+  if (seatClass) {
+    query[`availableSeats.${seatClass}`] = { $gt: 0 };
+  }
+
+  const flights = await Flight.find(query).populate({ path: "airline", select: "name code logo" }).populate({ path: "departureAirport", select: "name code city country" }).populate({ path: "arrivalAirport", select: "name code city country" }).lean();
+
+  const formattedFlights = flights.map(({ _id, ...rest }) => ({
+    id: _id,
+    ...rest,
+  }));
+
+  return {
+    count: formattedFlights.length,
+    flights: formattedFlights,
+  };
 };

@@ -6,60 +6,39 @@ import { useState, useEffect } from "react";
 import api from "@/axiosConfig";
 import toast from "react-hot-toast";
 
-const flightBookings = [
-  {
-    route: "Mumbai → Delhi",
-    airline: "Air India",
-    departureTime: "10:00 AM",
-    arrivalTime: "12:30 PM",
-    passengers: "2 Adults",
-    class: "Economy",
-    price: 8000,
-    tripType: "Round Trip",
-    bookingId: "FLIGHT123456",
-    image: "/flight-placeholder.jpg",
-  },
-  {
-    route: "Delhi → Mumbai",
-    airline: "IndiGo",
-    departureTime: "03:00 PM",
-    arrivalTime: "05:30 PM",
-    passengers: "2 Adults",
-    class: "Business",
-    price: 12000,
-    tripType: "One Way",
-    bookingId: "FLIGHT789012",
-    image: "/flight-placeholder.jpg",
-  },
-];
-
 export function AdminAllBookingsSection() {
   const [hotelBookings, setHotelBookings] = useState([]);
-  // const [flightBookings, setFlightBookings] = useState([]);
+  const [flightBookings, setFlightBookings] = useState([]);
   const [fetchLoading, setFetchLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHotelBookings = async () => {
+    const fetchBookings = async () => {
       try {
         setFetchLoading(true);
-        const res = await api.get("/api/admin/bookings/hotel");
-        setHotelBookings(res.data.data || []);
+
+        const [hotelRes, flightRes] = await Promise.all([
+          api.get("/api/admin/bookings/hotel"),
+          api.get("/api/admin/bookings/flight"),
+        ]);
+
+        setHotelBookings(hotelRes.data.data || []);
+        setFlightBookings(flightRes.data.data || []);
       } catch (error) {
-        console.error("Failed to fetch hotel bookings", error);
-        toast.error("Failed to load hotel bookings");
+        console.error("Failed to fetch bookings", error);
+        toast.error("Failed to load bookings");
       } finally {
         setFetchLoading(false);
       }
     };
 
-    fetchHotelBookings();
+    fetchBookings();
   }, []);
 
   if (fetchLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2"></div>
-        <span className="ml-4">Loading hotel data...</span>
+        <span className="ml-4">Loading booking data...</span>
       </div>
     );
   }
@@ -67,10 +46,8 @@ export function AdminAllBookingsSection() {
     <div className="mx-4 space-y-6 md:mx-0">
       <Card className="mx-4 space-y-4">
         <CardHeader>
-          <CardTitle className="pt-4 pb-1 text-2xl font-bold tracking-tight">All Booking</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Manage all customer bookings, and modify existing ones(coming soon).
-          </CardDescription>
+          <CardTitle className="pt-4 pb-1 text-2xl font-bold tracking-tight">All Bookings</CardTitle>
+          <CardDescription className="text-muted-foreground">Manage your hotel and flight bookings.</CardDescription>
         </CardHeader>
         <CardContent className="mb-6 space-y-4">
           <Tabs defaultValue="hotels" className="w-full">
@@ -84,7 +61,7 @@ export function AdminAllBookingsSection() {
                 <Card>
                   <CardContent className="py-6">
                     <div className="text-muted-foreground text-center">
-                      <p>No User hotels booked yet.</p>
+                      <p>No hotels booked yet.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -94,9 +71,17 @@ export function AdminAllBookingsSection() {
             </TabsContent>
 
             <TabsContent value="flights" className="space-y-4">
-              {flightBookings.map((booking) => (
-                <FlightBookedCard key={booking.bookingId} booking={booking} />
-              ))}
+              {flightBookings.length === 0 ? (
+                <Card>
+                  <CardContent className="py-6">
+                    <div className="text-muted-foreground text-center">
+                      <p>No flights booked yet.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                flightBookings.map((booking) => <FlightBookedCard key={booking._id} booking={booking} />)
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

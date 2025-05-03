@@ -9,7 +9,7 @@ import { validateInput } from "../middlewares/validateInput.middleware.js";
 import { createHotelSchema, createRoomTypeSchema, updateHotelSchema, updateRoomTypeSchema } from "../schemas/hotel.schema.js";
 import { userLoginSchema } from "../schemas/user.schema.js";
 import { deleteRoomType } from "../controllers/roomtype.controller.js";
-import { showAllHotelBooking } from "../controllers/booking.controller.js";
+import { showAllFlightBooking, showAllHotelBooking } from "../controllers/booking.controller.js";
 import { createAirlineSchema, createAirportSchema, createFlightSchema, updateAirlineSchema, updateAirportSchema, updateFlightSchema } from "../schemas/flight.schema.js";
 import { createAirline, createAirport, createFlight, deleteAirline, deleteAirport, deleteFlight, getAirlines, getAirport, getAllAirport, getAllFlights, getFlight, showAllAirlines, updateAirline, updateAirport, updateFlight } from "../controllers/flight.controller.js";
 
@@ -60,7 +60,7 @@ adminRouter.get("/roomtypes", authAdmin, getAllRoomTypes);
 adminRouter.get("/bookings/hotel", authAdmin, showAllHotelBooking);
 
 //View all flights bookings
-adminRouter.get("/bookings/flight", authAdmin);
+adminRouter.get("/bookings/flight", authAdmin, showAllFlightBooking);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Create a new airline

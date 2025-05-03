@@ -45,7 +45,7 @@ function HotelFilters({ filters, setFilters }) {
   };
 
   return (
-    <div className="bg-card sticky top-20 h-fit w-full space-y-6 rounded-lg border p-6 sm:w-[300px]">
+    <div className="bg-card sticky top-20 mx-auto h-fit w-full space-y-6 rounded-lg border p-6 sm:mx-0 sm:w-[300px]">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Filters</h2>
         <Button variant="ghost" size="sm" onClick={handleResetFilters}>

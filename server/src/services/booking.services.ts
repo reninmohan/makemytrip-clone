@@ -7,6 +7,9 @@ import { HttpError } from "../utils/ErrorResponse.utils.js";
 import { toHotelResponse } from "./hotel.services.js";
 import { toRoomTypeResponse } from "./roomType.services.js";
 import { toUserResponse } from "./user.services.js";
+import { ICreateFlightBooking } from "../schemas/flight.schema.js";
+import { Flight, FlightBooking } from "../db/models/flight.model.js";
+import { flightBookingSchema } from "../schemas/flight.schema.js";
 
 //Hotel Booking Service
 
@@ -130,8 +133,6 @@ export const fetchSpecificUserHotelBookingService = async (req: RequestWithUser)
     throw new HttpError(404, "HotelId param not provided in request.");
   }
 
-  // const hotelBooking = await HotelBooking.findById(bookingId).populate(["user", "roomType", "hotel"]);
-
   const hotelBooking = await HotelBooking.findOne({
     _id: bookingId,
     user: req.user?.id,
@@ -161,4 +162,121 @@ export const deleteSpecificUserHotelBookingService = async (req: RequestWithUser
   }
 
   return toHotelBookingResponse(booking);
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const createFlightBookingService = async (req: RequestWithUserAndBody<ICreateFlightBooking>) => {
+  if (!req.body) {
+    throw new HttpError(400, "Request body not received in request");
+  }
+
+  const { flight: flightId, seatClass } = req.body;
+
+  // Find the flight
+  const flight = await Flight.findById(flightId);
+  if (!flight) {
+    throw new HttpError(400, "Mentioned flightId doesn't exist in db.");
+  }
+
+  // Check if seats are available for the selected class
+  if (flight.availableSeats[seatClass] <= 0) {
+    throw new HttpError(400, `No ${seatClass} seats available for this flight`);
+  }
+
+  // Calculate total price based on flight's seat price
+  const totalPrice = flight.price[seatClass];
+
+  const bookingData = {
+    user: req.user?.id,
+    flight: flightId,
+    seatClass,
+    totalPrice,
+    status: "confirmed",
+    paymentStatus: "paid",
+    bookingDate: new Date(),
+  };
+
+  try {
+    // Validate booking data
+    await flightBookingSchema.parseAsync(bookingData);
+
+    // Create new booking
+    const newBooking = new FlightBooking(bookingData);
+    await newBooking.save();
+
+    // Update available seats
+    flight.availableSeats[seatClass] -= 1;
+    await flight.save();
+
+    // Populate and return the booking
+    const populatedBooking = await FlightBooking.findById(newBooking._id)
+      .populate({
+        path: "flight",
+        populate: [{ path: "airline" }, { path: "departureAirport" }, { path: "arrivalAirport" }],
+      })
+      .populate("user");
+
+    if (!populatedBooking) {
+      throw new HttpError(404, "Booking not found after creation");
+    }
+
+    return populatedBooking;
+  } catch (error) {
+    throw new HttpError(400, "Input Validation Failed during flight booking", error);
+  }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+export const fetchAllUserFlightBookingService = async (req: RequestWithUser) => {
+  const userId = req?.user?.id;
+
+  if (!userId) {
+    throw new HttpError(400, "Unauthorized access.");
+  }
+
+  const userFlightBookings = await FlightBooking.find({ user: userId })
+    .populate("user")
+    .populate({
+      path: "flight",
+      populate: [{ path: "airline" }, { path: "departureAirport" }, { path: "arrivalAirport" }],
+    });
+
+  return userFlightBookings;
+};
+
+export const deleteSpecificUserFlightBookingService = async (req: RequestWithUser) => {
+  const { bookingId } = req.params;
+
+  if (!bookingId) {
+    throw new HttpError(404, "BookingId param not provided in request.");
+  }
+
+  const booking = await FlightBooking.findOneAndDelete({
+    _id: bookingId,
+    user: req.user?.id,
+  })
+    .populate({
+      path: "flight",
+      populate: [{ path: "airline" }, { path: "departureAirport" }, { path: "arrivalAirport" }],
+    })
+    .populate("user");
+
+  if (!booking) {
+    throw new HttpError(404, "Flight Booking not found, unauthorized, or already deleted.");
+  }
+
+  return booking;
+};
+
+export const fetchAllAdminFlightBookingService = async () => {
+  const allFlightBooking = await FlightBooking.find({})
+    .populate({
+      path: "flight",
+      populate: [{ path: "airline" }, { path: "departureAirport" }, { path: "arrivalAirport" }],
+    })
+    .populate("user");
+
+  return allFlightBooking;
 };

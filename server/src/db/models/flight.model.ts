@@ -137,36 +137,10 @@ const flightBookingMongooseSchema = new mongoose.Schema({
     ref: "Flight",
     required: true,
   },
-  passengers: [
-    {
-      firstName: {
-        type: String,
-        required: true,
-      },
-      lastName: {
-        type: String,
-        required: true,
-      },
-      gender: {
-        type: String,
-        enum: ["male", "female", "other"],
-      },
-      dateOfBirth: Date,
-      passportNumber: String,
-      seatClass: {
-        type: String,
-        enum: ["economy", "business", "firstClass"],
-        default: "economy",
-      },
-    },
-  ],
-  contactEmail: {
+  seatClass: {
     type: String,
-    required: true,
-  },
-  contactPhone: {
-    type: String,
-    required: true,
+    enum: ["economy", "business", "firstClass"],
+    default: "economy",
   },
   totalPrice: {
     type: Number,

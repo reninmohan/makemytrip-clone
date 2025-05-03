@@ -13,7 +13,7 @@ function FlightSearch() {
   const navigate = useNavigate();
   const [from, setForm] = useState("");
   const [to, setTo] = useState("");
-  const [departDate, setDepartDate] = useState(null);
+  const [departDate, setDepartDate] = useState();
   const [passengers, setPassengers] = useState("1");
   const [travelClass, setTravelClass] = useState("economy");
 
@@ -22,7 +22,17 @@ function FlightSearch() {
 
     const departDateStr = departDate ? format(departDate, "yyyy-MM-dd") : "";
 
-    navigate(`/flights/search?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&departDate=${departDateStr}&travelers=${passengers}&class=${travelClass}`);
+    if (!from || !to || !passengers || !travelClass) {
+      return alert("Please fill out all fields.");
+    }
+
+    if (from.trim().toLowerCase() === to.trim().toLowerCase()) {
+      return alert("Departure and destination locations cannot be the same.");
+    }
+
+    navigate(
+      `/flights/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&departDate=${departDateStr}&passengers=${passengers}&class=${travelClass}`,
+    );
   };
 
   return (
@@ -32,7 +42,14 @@ function FlightSearch() {
           <Label htmlFor="origin">From</Label>
           <div className="relative">
             <Plane className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input id="origin" placeholder="City or Airport" className="pl-9" value={from} onChange={(e) => setForm(e.target.value)} required />
+            <Input
+              id="origin"
+              placeholder="City or Airport"
+              className="pl-9"
+              value={from}
+              onChange={(e) => setForm(e.target.value)}
+              required
+            />
           </div>
         </div>
 
@@ -40,7 +57,14 @@ function FlightSearch() {
           <Label htmlFor="destination">To</Label>
           <div className="relative">
             <Plane className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 rotate-90" />
-            <Input id="destination" placeholder="City or Airport" className="pl-9" value={to} onChange={(e) => setTo(e.target.value)} required />
+            <Input
+              id="destination"
+              placeholder="City or Airport"
+              className="pl-9"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              required
+            />
           </div>
         </div>
       </div>
@@ -56,7 +80,13 @@ function FlightSearch() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={departDate} onSelect={setDepartDate} initialFocus disabled={(date) => date < new Date()} />
+              <Calendar
+                mode="single"
+                selected={departDate}
+                onSelect={setDepartDate}
+                initialFocus
+                disabled={(date) => date < new Date()}
+              />
             </PopoverContent>
           </Popover>
         </div>

@@ -197,37 +197,6 @@ export const filterAndSearchAllHotelsService = async (req: Request): Promise<{ h
     totalHotels: finalHotels.length,
   };
 };
-// let filteredHotels = allHotels;
-
-// // Filter by price and guest capacity inside roomTypes
-// if (minPrice || maxPrice || capacity) {
-//   filteredHotels = allHotels.filter((hotel) =>
-//     hotel.roomTypes.some((room: any) => {
-//       const matchesPrice = (minPrice ? room.pricePerNight >= Number(minPrice) : true) && (maxPrice ? room.pricePerNight <= Number(maxPrice) : true);
-//       const matchesGuests = capacity ? room.capacity >= Number(capacity) : true;
-//       return matchesPrice && matchesGuests;
-//     }),
-//   );
-// }
-
-// if (checkInDate && checkOutDate) {
-//   const conflictingBookings = await HotelBooking.find({
-//     $or: [
-//       {
-//         checkInDate: { $lt: new Date(checkOutDate as string) },
-//         checkOutDate: { $gt: new Date(checkInDate as string) },
-//       },
-//     ],
-//   }).select("roomType");
-
-//   const unavailableRoomTypeIds = conflictingBookings.map((b) => b.roomType.toString());
-//   filteredHotels = filteredHotels.filter((hotel) => hotel.roomTypes.some((room: any) => !unavailableRoomTypeIds.includes(room._id.toString())));
-// }
-// const totalHotels = filteredHotels.length;
-// return {
-//   hotels: filteredHotels.map((hotel) => toHotelResponse(hotel)),
-//   totalHotels: totalHotels,
-// };
 
 export const fetchAllRoomsByHotelService = async (req: Request): Promise<IRoomTypeResponse[]> => {
   const { hotelId } = req.params;

@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import toast from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast"; // Added Toaster
+import { Clock } from "lucide-react";
 import api from "../axiosConfig";
 
 function FlightSearchResults({ filters }) {
@@ -16,49 +17,29 @@ function FlightSearchResults({ filters }) {
 
   const { minPrice, maxPrice, stops, selectedAirlines, departureTimes, arrivalTimes } = filters || {};
 
-  const origin = searchParams.get("origin") || "";
-  const destination = searchParams.get("destination") || "";
-  const departureDate = searchParams.get("departureDate") || "";
-
-  const filterFlights = (flights) => {
-    if (!Array.isArray(flights)) return [];
-
-    return flights.filter((flight) => {
-      const price = flight.price || 0;
-      if (price < minPrice || price > maxPrice) return false;
-      if (stops !== "any" && flight.stops !== Number(stops)) return false;
-      if (selectedAirlines.length > 0 && !selectedAirlines.includes(flight.airline)) return false;
-      if (
-        departureTimes.length > 0 &&
-        !departureTimes.some((range) => {
-          const hour = parseInt(flight.departureTime?.split(":")[0], 10);
-          return hour >= range.start && hour <= range.end;
-        })
-      )
-        return false;
-
-      if (
-        arrivalTimes.length > 0 &&
-        !arrivalTimes.some((range) => {
-          const hour = parseInt(flight.arrivalTime?.split(":")[0], 10);
-          return hour >= range.start && hour <= range.end;
-        })
-      )
-        return false;
-
-      return true;
-    });
-  };
+  const from = searchParams.get("from") || "";
+  const to = searchParams.get("to") || "";
+  const departDate = searchParams.get("departDate") || "";
+  const seatClass = searchParams.get("class") || "";
 
   const sortFlights = (flights) => {
     return [...flights].sort((a, b) => {
+      let priceA, priceB;
       switch (sortBy) {
         case "price-low":
-          return a.price - b.price;
+          priceA = typeof a.price === "object" ? a.price.economy : a.price;
+          priceB = typeof b.price === "object" ? b.price.economy : b.price;
+          return priceA - priceB;
         case "price-high":
-          return b.price - a.price;
+          priceA = typeof a.price === "object" ? a.price.economy : a.price;
+          priceB = typeof b.price === "object" ? b.price.economy : b.price;
+          return priceB - priceA;
         case "duration":
           return a.duration - b.duration;
+        case "departure":
+          return new Date(a.departureTime) - new Date(b.departureTime);
+        case "arrival":
+          return new Date(a.arrivalTime) - new Date(b.arrivalTime);
         default:
           return 0;
       }
@@ -72,12 +53,20 @@ function FlightSearchResults({ filters }) {
     try {
       const response = await api.get("/api/flights/search", {
         params: {
-          origin,
-          destination,
-          departureDate,
+          from,
+          to,
+          departDate,
+          seatClass,
+          minPrice,
+          maxPrice,
+          isNonStop: stops === "nonStop" ? true : undefined,
+          airline: selectedAirlines,
+          departTimeRange: departureTimes.length > 0 ? departureTimes : undefined,
+          arrivalTimeRange: arrivalTimes.length > 0 ? arrivalTimes : undefined,
         },
       });
-      setFlights(response.data?.data || []);
+
+      setFlights(response.data?.data.flights || []);
     } catch (error) {
       console.error("Failed to fetch flights", error);
       toast.error("Failed to load flight data.");
@@ -85,14 +74,13 @@ function FlightSearchResults({ filters }) {
     } finally {
       setFetchLoading(false);
     }
-  }, [origin, destination, departureDate]);
+  }, [from, to, departDate, seatClass, minPrice, maxPrice, stops, arrivalTimes, departureTimes, selectedAirlines]);
+  console.log("fligth", flights);
 
-  console.log(flights);
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchFlights();
     }, 500);
-
     return () => clearTimeout(timer);
   }, [fetchFlights]);
 
@@ -109,7 +97,7 @@ function FlightSearchResults({ filters }) {
       <Card className="border-destructive">
         <CardContent className="text-destructive pt-6 text-center">
           <p>{fetchError}</p>
-          <Button variant="outline" className="mt-4">
+          <Button variant="outline" className="mt-4" onClick={fetchFlights}>
             Try Again
           </Button>
         </CardContent>
@@ -117,25 +105,28 @@ function FlightSearchResults({ filters }) {
     );
   }
 
-  const filtered = filterFlights(flights);
-  const sorted = sortFlights(filtered);
-
-  if (filtered.length === 0) {
+  if (flights.length === 0) {
     return (
       <Card>
-        <CardContent className="text-muted-foreground py-6 text-center">
-          <p>No flights found with current filters.</p>
+        <CardContent className="py-6">
+          <div className="text-muted-foreground text-center">
+            <p>No flights found with current filters. Please try changing the filter.</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  const sorted = sortFlights(flights);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-0">
+      <Toaster position="top-right" />
+
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold">Flights {origin && destination && `from ${origin} to ${destination}`}</h2>
-          <p className="text-muted-foreground">{filtered.length} results found</p>
+          <h2 className="text-2xl font-bold">Flights {from && to && `from ${from} to ${to}`}</h2>
+          <p className="text-muted-foreground">{flights.length} results found</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm whitespace-nowrap">Sort by:</span>
@@ -148,6 +139,8 @@ function FlightSearchResults({ filters }) {
               <SelectItem value="price-low">Price (Low to High)</SelectItem>
               <SelectItem value="price-high">Price (High to Low)</SelectItem>
               <SelectItem value="duration">Duration (Shortest First)</SelectItem>
+              <SelectItem value="departure">Departure Time (Earliest First)</SelectItem>
+              <SelectItem value="arrival">Arrival Time (Earliest First)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -155,46 +148,66 @@ function FlightSearchResults({ filters }) {
 
       <div className="space-y-4">
         {sorted.map((flight) => (
-          <Card key={flight.id}>
-            {/* <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row"> */}
-            <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
-              {/* Airline Logo and Info */}
-              <div className="flex items-center gap-3">
-                <img src={flight.airline.logo} alt={flight.airline.name} className="h-12 w-12 object-contain" />
-                <div className="text-left">
+          <Card key={flight.id} className="mr-4">
+            <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative h-10 w-10">
+                  <img
+                    src={flight.airline.logo || "/placeholder.svg"}
+                    alt={flight.airline.name}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
                   <h3 className="text-lg font-semibold">{flight.airline.name}</h3>
                   <p className="text-muted-foreground text-sm">{flight.flightNumber}</p>
                 </div>
               </div>
 
-              {/* Departure */}
-              <div className="flex flex-col items-center">
-                <span className="text-xl font-bold">{new Date(flight.departureTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              <div className="flex flex-1 flex-col items-center">
+                <span className="text-xl font-semibold">
+                  {new Date(flight.departureTime)
+                    .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+                    .toUpperCase()}
+                </span>
                 <span className="text-muted-foreground text-sm">
                   {flight.departureAirport.city} ({flight.departureAirport.code})
                 </span>
               </div>
-              {/* Arrow */}
-              <div className="flex h-full items-center">
+
+              <div className="flex flex-1 flex-col items-center">
+                <span className="text-muted-foreground flex items-center gap-1 text-sm">
+                  <Clock className="h-3 w-3" />
+                  {`${Math.floor(flight.duration / 60)}Hr ${flight.duration % 60}m`}
+                </span>
                 <span className="text-muted-foreground">→</span>
+                <div className="text-muted-foreground px-2 text-xs">{flight.isNonStop ? "Nonstop" : "Connecting"}</div>
               </div>
-              {/* Arrival */}
-              <div className="flex flex-col items-center">
-                <span className="text-xl font-bold">{new Date(flight.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+
+              <div className="flex flex-1 flex-col items-center">
+                <span className="text-xl font-semibold">
+                  {new Date(flight.arrivalTime)
+                    .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+                    .toUpperCase()}
+                </span>
                 <span className="text-muted-foreground text-sm">
                   {flight.arrivalAirport.city} ({flight.arrivalAirport.code})
                 </span>
               </div>
 
-              {/* Price, Duration and Book Button */}
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-1 flex-col items-end gap-2">
                 <div className="text-center">
-                  <div className="text-xl font-bold">₹{flight.price.economy}</div>
-                  <div className="text-muted-foreground text-sm">
-                    {flight.duration} mins • {flight.isNonStop ? "Non-stop" : `${flight.stops || 1} stops`}
+                  <span className="text-muted-foreground text-sm">Starting from </span>
+                  {/* Handle both price structures (object or number) */}
+                  <div className="text-xl font-bold">
+                    ₹{typeof flight.price === "object" ? flight.price.economy : flight.price}
                   </div>
                 </div>
-                <Button variant="primary" onClick={() => navigate(`/flights/${flight.id}`)} className="w-full">
+                <Button
+                  variant="primary"
+                  onClick={() => navigate(`/booking/flight/book/${flight.id}`)}
+                  className="w-25"
+                >
                   Select
                 </Button>
               </div>
