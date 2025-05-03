@@ -8,6 +8,11 @@ Email: renin@gmail.com
 
 Password: 12345678
 
+🔐 Admin Access https://makemytrip-clone-client.vercel.app/admin
+Email: boss@gmail.com
+
+Password: 12345678
+
 🚀 Features
 👤 User Features
 Secure login and registration with JWT (access + refresh token flow)
